@@ -421,7 +421,12 @@ table {
   border-spacing: 0;
 }
 
+/*
+ * This makes tables squish uncomfortably together.
+ */
+/*
 td,
 th {
   padding: 0;
 }
+*/
