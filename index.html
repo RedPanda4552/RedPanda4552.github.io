@@ -5,6 +5,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
+        <link rel="stylesheet" href="css/main.css">
         <link rel="stylesheet" href="css/skeleton.css">
         <link rel="stylesheet" href="css/normalize.css">
 
@@ -14,25 +15,348 @@
         <div class="container">
             <div class="row">
                 <div class="twelve columns">
-                    <h1>Table of Contents</h1>
+                    <h1>PlayStation 2: Serial Input Output 2, Memory Cards, and Controllers</h1>
+                    <p>This document outlines the Serial Input Output 2 bus and the memory cards and controllers it is used to communicate with.</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="twelve columns">
+                    <h2>Table of Contents</h2>
+                    <ul>
+                        <li>
+                            <a href="#terms">Words, Terms, Slang, Lingo</a>
+                        </li>
+                        <li>
+                            <a href="#sio2">Serial Input Output 2 (SIO2)</a>
+                        </li>
+                        <li>
+                            <a href="#memcard">PlayStation 2 Memory Cards</a>
+                        </li>
+                        <li>
+                            <a href="#pad">PlayStation 2 Controllers</a>
+                        </li>
+                        <li>
+                            <a href="#src">Sources</a>
+                        </li>
+                    </ul>
                 </div>
             </div>
             <hr/>
             <div class="row">
                 <div class="twelve columns">
-                    <h1 id="sio2">Serial Input Output 2 (SIO2)</h1>
+                    <h2 id="terms">Words, Terms, Slang, Lingo</h2>
+                    <p>Throughout this document there will be a number of words, terms, slang, lingo, whatever you want to call it. Here's my attempt at defining some of these.</p>
+                    <table>
+                        <thead>
+                            <th>Word</th>
+                            <th>Meaning</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>PS2</td>
+                                <td>"PlayStation 2"</td>
+                            </tr>
+                            <tr>
+                                <td>OEM</td>
+                                <td>"Original Equipment Manufacturer"</td>
+                            </tr>
+                            <tr>
+                                <td>SIO2</td>
+                                <td>"Serial Input Output 2"</td>
+                            </tr>
+                            <tr>
+                                <td>memcard</td>
+                                <td>"memory card"</td>
+                            </tr>
+                            <tr>
+                                <td>fs</td>
+                                <td>"filesystem", "file system", "file-system"</td>
+                            </tr>
+                            <tr>
+                                <td>ECC</td>
+                                <td>"Error Correction Code"</td>
+                            </tr>
+                            <tr>
+                                <td>FAT</td>
+                                <td>"File Allocation Table"</td>
+                            </tr>
+                            <tr>
+                                <td>pad</td>
+                                <td>"controller", "game pad", "joy pad"</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
             <hr/>
             <div class="row">
                 <div class="twelve columns">
-                    <h1 id="memcard">PlayStation 2 Memory Cards</h1>
+                    <h2 id="sio2">Serial Input Output 2 (SIO2)</h2>
+                    <ul>
+                        <li>
+                            <a href="#sio2regs">SIO2 Registers</a>
+                        </li>
+                        <li>
+                            <a href="#electric">Electrical Signals</a>
+                        </li>
+                    </ul>
+                    <h3 id="sio2regs">SIO2 Registers</h3>
+                    <h3 id="electric">Electrical Signals</h3>
+                    <p>The default state of the data lane on the SIO2 bus is high. That is, if the PS2 reads the SIO2 data lane while nothing is connected it will always read 0xff. It is up to a connected peripheral to pull this lane low.</p>
+                    <p>For example, a PS2 can detect if a memcard is present simply by sending a probe command. If a memcard is present, it will react by pulling the data lane low to send its response; in the case of a probe command, it pulls data down to 0x00 for all but the last two command bytes. The second to last command byte is 0x2B, and the last command byte is whatever the memcard's terminator byte is currently set to.</p>
+                    <p>The data lane is shared between the memcard and pad ports. If the PS2 sends a command to memcard port 0, it is also going to pad port 0 at the same time. This works because the first byte of any command always identifies what the PS2 intends to send the command to. Pads know to ignore anything that doesn't start with a 0x01 byte, and memcards know to ignore anything that doesn't start with a 0x81 byte. When they receive a command that isn't intended for them, they apply no change to the data lane, so that the intended device can apply its change without interference.</p>
                 </div>
             </div>
             <hr/>
             <div class="row">
                 <div class="twelve columns">
-                    <h1 id="memcard">PlayStation 2 Controllers</h1>
+                    <h2 id="memcard">PlayStation 2 Memory Cards</h2>
+                    <ul>
+                        <li>
+                            <a href="#mcfs">Memcard Filesystem</a>
+                        </li>
+                        <li>
+                            <a href="#cmds">Memcard Commands</a>
+                        </li>
+                    </ul>
+                    <h3 id="mcfs">Memcard Filesystem</h3>
+                    <ul>
+                        <li>
+                            <a href="#structs">Data Structures</a>
+                        </li>
+                        <li>
+                            <a href="#superblock">Superblock</a>
+                        </li>
+                        <li>
+                            <a href="#fat">File Allocation Table (FAT)</a>
+                        </li>
+                        <li>
+                            <a href="#dir">Directory Tree</a>
+                        </li>
+                        <li>
+                            <a href="#format">Formatting</a>
+                        </li>
+                    </ul>
+                    <h4 id="structs">Data Structures</h4>
+                    <p>The PS2 memcard filesystem can be broken down into a few different data structures or organizational units.</p>
+                    <ul>
+                        <li>
+                            <a href="#page">Page</a>
+                        </li>
+                        <li>
+                            <a href="#cluster">Cluster</a>
+                        </li>
+                        <li>
+                            <a href="#eraseblock">Erase Block</a>
+                        </li>
+                    </ul>
+                    <h5 id="page">Page</h5>
+                    <p>A group of data bytes, followed by ECC bytes. The data bytes can be either 512 or 1024 bytes long; this is the Page Length attribute specified in the superblock. OEM memcards from Sony will always use 512 bytes. Though the 1024 byte size is supported, there are no known cases (yet) of a real memcard actually using this.</p>
+                    <p>The ECC bytes following the data bytes are 16 bytes long if the page length is 512, or 32 bytes long if the page length is 1024. In either case, every 128 bytes of data corresponds to 3 bytes of ECC data.</p>
+                    <table>
+                        <thead>
+                            <th>Physical Size</th>
+                            <th>Data Bytes Used</th>
+                            <th>Data Bytes Total</th>
+                            <th>ECC Bytes Used</th>
+                            <th>ECC Bytes Total</th>
+                            <th>Data Byte to ECC Byte Mapping</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>528</td>
+                                <td>512</td>
+                                <td>512</td>
+                                <td>12</td>
+                                <td>16</td>
+                                <td>128 bytes data = 3 bytes ECC</td>
+                            </tr>
+                            <tr>
+                                <td>1056</td>
+                                <td>1024</td>
+                                <td>1024</td>
+                                <td>24</td>
+                                <td>32</td>
+                                <td>128 bytes data = 3 bytes ECC</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h5 id="cluster">Cluster</h5>
+                    <p>A group of pages. Clusters can be 1 or 2 pages long; this is the Pages Per Cluster attribute specified in the superblock. OEM memcards from Sony will always use Pages Per Cluster = 2. If the Page Length attribute of the superblock is 1024, then Pages Per Cluster must be 1.</p>
+                    <table>
+                        <thead>
+                            <th>Page Length</th>
+                            <th>Pages Per Cluster = 1</th>
+                            <th>Pages Per Cluster = 2</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>512</td>
+                                <td>Supported</td>
+                                <td>Supported</td>
+                            </tr>
+                            <tr>
+                                <td>1024</td>
+                                <td>Supported</td>
+                                <td>NOT Supported</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p>Clusters are primarily used in the FAT and for navigation. Presumably, it requires a smaller FAT this way (at least for OEM memcards where 1 cluster = 2 pages = 1024 data bytes); a single FAT entry points to two pages worth of data, rather than having a FAT entry for every page. The disadvantage is that small, loose files can lead to wasted space. A single FAT entry points to one cluster, so whatever file belongs to that FAT entry ends up consuming both pages even if it is only 256 bytes long, leading to 768 unused data bytes.</p>
+                    <p>Directories do remedy this partially by leveraging each individual page as a directory entry. When populating a directory tree for a memory card, the FAT is traversed and this tells you what clusters and in what order to traverse them to populate the directory tree. When a cluster is visited, it is simply expected that each page can be an individual directory entry, and so both pages at that cluster position are checked individually.</p>
+                    <p>Contrast with files, a single file is given a single cluster position, and there is no indication or expectation that two files can live on different pages in the same cluster, so any unused space across the entire cluster is lost until the file is deleted and the cluster's pages can be reallocated to a new file or directory entry.</p>
+                    <h5 id="eraseblock">Erase Block</h5>
+                    <p>A group of pages. Erase blocks default to 16 pages long; this is the Pages Per Erase Block attribute specified in the superblock. 16 is the maximum number of pages supported per erase block. It is unclear whether this number can be reduced.</p>
+                    <p>Erase blocks are the units of which a memcard can be erased. Because memcards are flash memory, bits can only be flipped one direction. In all known cases, the "default" position of a bit is 1, and bits can only be flipped to 0. To flip back to 1, an entire erase block must be "cleared" to 1's. As such, prior to any write operation, a page's entire erase block must be erased first.</p>
+                    <h4 id="superblock">Superblock</h4>
+                    <p>The superblock is the "brain" of the memcard. This page stores information describing the size and health of the memcard.</p>
+                    <p>
+                        <i>Quotes found in the below table are to express that something is a string value. The values themselves do not contain quote characters.</i>
+                    </p>
+                    <table class="shrink-last">
+                        <thead>
+                            <th>Offset</th>
+                            <th>Name</th>
+                            <th>Data Type</th>
+                            <th>Default</th>
+                            <th>Description</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>0x00</td>
+                                <td>Format String</td>
+                                <td>char[28]</td>
+                                <td>"Sony PS2 Memory Card Format "</td>
+                                <td>Constant ASCII string. Evaluated when checking if a memcard is formatted. Will be present on a formatted memcard, missing otherwise. This string is NOT null terminated!</td>
+                            </tr>
+                            <tr>
+                                <td>0x1C</td>
+                                <td>Version</td>
+                                <td>char[12]</td>
+                                <td>"1.x.0.0"</td>
+                                <td>Version string. Version "1.2.x.y" has full support for the Bad Block List, older versions have limited or none. This string is null terminated (unused bytes are null terminators). It's currently unclear if this version number is provisioned by the console or the card.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4 id="fat">File Allocation Table (FAT)</h4>
+                    <h4 id="dir">Directory Tree</h4>
+                    <h4 id="format">Formatting</h4>
+                    <h3 id="cmds">Memcard Commands</h3>
+                    <p>Memcards accept a number of commands, encoded as streams of bytes sent over the SIO2 bus.</p>
+                    <ul>
+                        <li>
+                            <a href="#probe">Probe</a>
+                        </li>
+                        <li>
+                            <a href="#unkwritedel">Unknown (Write/Delete End)</a>
+                        </li>
+                    </ul>
+                    <h4 id="probe">Probe</h4>
+                    <p>A basic heartbeat command to test if a memcard is present in a port. Only the last two response bytes matter, they should be 0x2B and the memcard's current terminator byte.</p>
+                    <table>
+                        <thead>
+                            <th>Byte (zero indexed)</th>
+                            <th>0</th>
+                            <th>1</th>
+                            <th>2</th>
+                            <th>3</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Command</td>
+                                <td>0x81</td>
+                                <td>0x11</td>
+                                <td>0x00</td>
+                                <td>0x00</td>
+                            </tr>
+                            <tr>
+                                <td>Response</td>
+                                <td>0x00</td>
+                                <td>0x00</td>
+                                <td>0x2B</td>
+                                <td>Terminator</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4 id="unkwritedel">Unknown (Write/Delete End)</h4>
+                    <p>A command which games send to memcards after writes or erases. Its purpose is currently unknown. A theory is that this is some kind of acknowledge signal; sceMcSync is used on the EE to check if a memcard function has completed or stall until it does. Perhaps sceMcSync is waiting for this command to be processed?</p>
+                    <p>This command conventionally has a length of 4 bytes. Only the last two response bytes matter, they should be 0x2B and the memcard's current terminator byte. The 3rd byte seems to switch between 0x00 and 0x3F, but this appears to be arbitrary to the command completing. Additionally a value may appear at command byte 6, beyond the length specified in the SEND3 register when this command is used, but this too appears arbitrary to completion.</p>
+                    <table>
+                        <thead>
+                            <th>Byte (zero indexed)</th>
+                            <th>0</th>
+                            <th>1</th>
+                            <th>2</th>
+                            <th>3</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Command</td>
+                                <td>0x81</td>
+                                <td>0x12</td>
+                                <td>0x00</td>
+                                <td>0x00 or 0x3F</td>
+                            </tr>
+                            <tr>
+                                <td>Response</td>
+                                <td>0x00</td>
+                                <td>0x00</td>
+                                <td>0x2B</td>
+                                <td>Terminator</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <hr/>
+            <div class="row">
+                <div class="twelve columns">
+                    <h2 id="memcard">PlayStation 2 Controllers</h2>
+                    <ul>
+                        <li>
+                            <a href="#"></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <hr/>
+            <div class="row">
+                <div class="twelve columns">
+                    <h2 id="src">Sources</h2>
+                    <ul>
+                        <li>
+                            <a href="#ross">Ross Ridge's "PlayStation 2 Memory Card File System" Document</a>
+                        </li>
+                        <li>
+                            <a href="#ps2tek">PSI's "ps2tek" Document</a>
+                        </li>
+                    </ul>
+                    <h3 id="ross">Ross Ridge's "PlayStation 2 Memory Card File System" Document</h3>
+                    <p>Provides information on the entire PS2 memcard filesystem.</p>
+                    <h4>Links</h4>
+                    <ul>
+                        <li>
+                            <a href="http://www.csclub.uwaterloo.ca:11068/mymc/ps2mcfs.html">
+                                Original document
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://web.archive.org/web/20220501172129/http://www.csclub.uwaterloo.ca:11068/mymc/ps2mcfs.html">
+                                A snapshot on the Wayback Machine (2022-05-01)
+                            </a>
+                        </li>
+                    </ul>
+                    <h3 id="ps2tek">PSI's "ps2tek" Document</h3>
+                    <p>Absolutely critical in making heads or tails of the PS2's IOP modules for SIO2, memcards, and pads.</p>
+                    <h4>Links</h4>
+                    <ul>
+                        <li>
+                            <a href="https://psi-rockin.github.io/ps2tek/">Original document</a>
+                        </li>
+                        <li>
+                            <a href="https://web.archive.org/web/20220903190800/https://psi-rockin.github.io/ps2tek/">A snapshot on the Wayback Machine (2022-09-03)</a>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
