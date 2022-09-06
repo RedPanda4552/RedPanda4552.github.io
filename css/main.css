@@ -1,0 +1,16 @@
+/* Table headers should never wrap */
+th
+{
+    white-space: nowrap;   
+}
+
+/* Tables with class shrink-last will force no wrapping on all data cells except the very last */
+table.shrink-last td
+{
+    white-space: nowrap;
+}
+
+table.shrink-last td:last-child
+{
+    white-space: normal;
+}
