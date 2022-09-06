@@ -99,13 +99,72 @@
                     <h2 id="sio2">Serial Input Output 2 (SIO2)</h2>
                     <ul>
                         <li>
+                            <a href="#sio2regmap">SIO2 Register Memory Map</a>
+                        </li>
+                        <li>
                             <a href="#sio2regs">SIO2 Registers</a>
                         </li>
                         <li>
                             <a href="#electric">Electrical Signals</a>
                         </li>
                     </ul>
+                    <h3 id="sio2regmap">SIO2 Register Memory Map</h3>
+                    <table class="shrink-last">
+                        <thead>
+                            <th>Name</th>
+                            <th>Address</th>
+                            <th>Data Type</th>
+                            <th>Description</th>
+                        </thead>
+                        <tbody>
+                            <td>SEND3</td>
+                            <td>0x1F808200 - 0x1F80823F</td>
+                            <td>int[16]</td>
+                            <td>Used internally by SIO2MAN to track how many commands it is sending, to which physical ports, and how long they are.</td>
+                        </tbody>
+                    </table>
                     <h3 id="sio2regs">SIO2 Registers</h3>
+                    <ul>
+                        <li>
+                            <a href="#send3">SEND3</a>
+                        </li>
+                    </ul>
+                    <h4 id="send3">SEND3</h4>
+                    <p>This register is an array of 16 ints. For each int:</p>
+                    <table class="shrink-last">
+                        <thead>
+                            <th>Bit</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>0</td>
+                                <td>Port</td>
+                                <td>Which physical port on the front of the console is being targeted. When unset, this maps to "1" on the front of the console, when set this maps to "2" on the front of the console.</td>
+                            </tr>
+                            <tr>
+                                <td>1-7</td>
+                                <td>Unused</td>
+                                <td>No known purpose.</td>
+                            </tr>
+                            <tr>
+                                <td>8-16</td>
+                                <td>Command Length</td>
+                                <td>Specifies length of the command in bytes. Some games will report the full length of the command here, others will report only the length of the bytes which had to be written to form the command. That is, if a command opens with "0x81 0x43 0x80" and then the rest of the command is 0x00, some games may report a length of 3, while others will go on to report the entire length of 134. This value is believed to use all 9 bits, but currently there are no known cases of this value actually using the 9th bit.</td>
+                            </tr>
+                            <tr>
+                                <td>17-23</td>
+                                <td>Response Length</td>
+                                <td>Specifies length of the expected response in bytes. For memcard commands such as read and write (those which involve transferring actual data to and from the memcard), this value tends to exclude the transferred data and only include the header/footer bytes. The case where this is generally not true is with reads of ECC data, in which case it does include the length of the transferred ECC data. This value is believed to be 7 bits long.</td>
+                            </tr>
+                            <tr>
+                                <td>24-31</td>
+                                <td>Unused</td>
+                                <td>No known purpose.</td>
+                            </tr>
+                        </tbody>
+                    </table>
                     <h3 id="electric">Electrical Signals</h3>
                     <p>The default state of the data lane on the SIO2 bus is high. That is, if the PS2 reads the SIO2 data lane while nothing is connected it will always read 0xff. It is up to a connected peripheral to pull this lane low.</p>
                     <p>For example, a PS2 can detect if a memcard is present simply by sending a probe command. If a memcard is present, it will react by pulling the data lane low to send its response; in the case of a probe command, it pulls data down to 0x00 for all but the last two command bytes. The second to last command byte is 0x2B, and the last command byte is whatever the memcard's terminator byte is currently set to.</p>
