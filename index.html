@@ -284,7 +284,7 @@
                                 <td>Format String</td>
                                 <td>char[28]</td>
                                 <td>"Sony PS2 Memory Card Format "</td>
-                                <td>Constant ASCII string. Evaluated when checking if a memcard is formatted. Will be present on a formatted memcard, missing otherwise. This string is NOT null terminated!</td>
+                                <td>Constant ASCII string. Evaluated when checking if a memcard is formatted. Will be present on a formatted memcard, missing otherwise. This string ends with a space, and is not null terminated!</td>
                             </tr>
                             <tr>
                                 <td>0x1C</td>
@@ -292,6 +292,181 @@
                                 <td>char[12]</td>
                                 <td>"1.x.0.0"</td>
                                 <td>Version string. Version "1.2.x.y" has full support for the Bad Block List, older versions have limited or none. This string is null terminated (unused bytes are null terminators). It's currently unclear if this version number is provisioned by the console or the card.</td>
+                            </tr>
+                            <tr>
+                                <td>0x28</td>
+                                <td>Page Length</td>
+                                <td>short</td>
+                                <td>512</td>
+                                <td>Size in bytes of a memcard page. Can be either 512 or 1024. No known cases of a real memcard using 1024.</td>
+                            </tr>
+                            <tr>
+                                <td>0x2A</td>
+                                <td>Pages Per Cluster</td>
+                                <td>short</td>
+                                <td>2</td>
+                                <td>Number of pages in a memcard cluster. Can be 1 or 2 if page length is 512, must be 1 if page length is 1024.</td>
+                            </tr>
+                            <tr>
+                                <td>0x2C</td>
+                                <td>Pages Per Block</td>
+                                <td>short</td>
+                                <td>16</td>
+                                <td>Number of pages in a memcard erase block. </td>
+                            </tr>
+                            <tr>
+                                <td>0x2E</td>
+                                <td>Unknown</td>
+                                <td>short</td>
+                                <td>0xff00</td>
+                                <td>Doesn't appear to be used, purpose unknown.</td>
+                            </tr>
+                            <tr>
+                                <td>0x30</td>
+                                <td>Clusters On Card</td>
+                                <td>int</td>
+                                <td>8192</td>
+                                <td>Size of the memcard in clusters.</td>
+                            </tr>
+                            <tr>
+                                <td>0x34</td>
+                                <td>Allocation Offset</td>
+                                <td>int</td>
+                                <td>0x41</td>
+                                <td>Offset of the first "allocatable" cluster. Offset is relative to the beginning of the memcard. Cluster values in the FAT and directory entries are then relative to this cluster. "Allocatable" means a cluster which is not reserved for a special purpose (e.g. FAT or backup) and can be used to store files and make directory entries.</td>
+                            </tr>
+                            <tr>
+                                <td>0x38</td>
+                                <td>Allocation End</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x3C</td>
+                                <td>Root Directory Cluster</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x40</td>
+                                <td>Backup Block 1</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x44</td>
+                                <td>Backup Block 2</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x48</td>
+                                <td>Unknown</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x4C</td>
+                                <td>Unknown</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x50</td>
+                                <td>Indirect FAT Cluster List</td>
+                                <td>int[32]</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0xD0</td>
+                                <td>Bad Block List</td>
+                                <td>int[32]</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x150</td>
+                                <td>Card Type</td>
+                                <td>char</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x151</td>
+                                <td>Card Flags</td>
+                                <td>char</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x152</td>
+                                <td>Unknown</td>
+                                <td>short</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x154</td>
+                                <td>ClUster Size</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x158</td>
+                                <td>FAT Entries Per Cluster</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x15C</td>
+                                <td>Clusters Per Block</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x160</td>
+                                <td>Card Form</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x164</td>
+                                <td>Root Directory Cluster 2</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x168</td>
+                                <td>Unknown</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x16C</td>
+                                <td>Unknown</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x170</td>
+                                <td>Max Allocatable Clusters</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
                             </tr>
                         </tbody>
                     </table>
