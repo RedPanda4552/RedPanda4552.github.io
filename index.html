@@ -162,9 +162,17 @@
                         </tbody>
                     </table>
                     <h3 id="electric">Electrical Signals</h3>
-                    <p>The default state of the data lane on the SIO2 bus is high. That is, if the PS2 reads the SIO2 data lane while nothing is connected it will always read 0xff. It is up to a connected peripheral to pull this lane low.</p>
-                    <p>For example, a PS2 can detect if a memcard is present simply by sending a probe command. If a memcard is present, it will react by pulling the data lane low to send its response; in the case of a probe command, it pulls data down to 0x00 for all but the last two command bytes. The second to last command byte is 0x2B, and the last command byte is whatever the memcard's terminator byte is currently set to.</p>
-                    <p>The data lane is shared between the memcard and pad ports. If the PS2 sends a command to memcard port 0, it is also going to pad port 0 at the same time. This works because the first byte of any command always identifies what the PS2 intends to send the command to. Pads know to ignore anything that doesn't start with a 0x01 byte, and memcards know to ignore anything that doesn't start with a 0x81 byte. When they receive a command that isn't intended for them, they apply no change to the data lane, so that the intended device can apply its change without interference.</p>
+                    <p>
+                        SIO2 only has two ports servicing the four physical ports on the console. Memcard port 1 and pad port 1 are actually on the same command and data lanes; a command will be received by both physical ports,
+                        and its response data will also share the same lane into the PS2. Likewise, if the PS2 were not itself keeping track of which peripheral it was talking to,
+                        it would not be able to infer which peripheral just responded on the matching data lane. The first byte of a command specifies it's intended target,
+                        presumably so the controllers on the peripherals know whether to listen or not. It is unclear at what point a peripheral may begin to start listening again if it ignores a command;
+                        one might think "perhaps just wait until the next byte matching that device", however it is equally possible that a command intended for another device may just happen to have that value somewhere inside, so this is not viable.
+                        It is more likely that the peripheral is waiting for an interrupt or some other signal to come in over a separate circuit.
+                    </p>
+                    <p>
+                        When no device is present, attempting to read the data lane anyways results in a 0xff value. When a device is present, this "default value" changes to 0x00. Devices can then change the value as needed to respond to commands.
+                    </p>
                 </div>
             </div>
             <hr/>
