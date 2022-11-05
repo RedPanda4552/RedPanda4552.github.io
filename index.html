@@ -142,17 +142,20 @@
                                 <td>No known purpose.</td>
                             </tr>
                             <tr>
-                                <td>8-16</td>
-                                <td>Command Length</td>
-                                <td>Specifies length of the command in bytes. Some games will report the full length of the command here, others will report only the length of the bytes which had to be written to form the command. That is, if a command opens with "0x81 0x43 0x80" and then the rest of the command is 0x00, some games may report a length of 3, while others will go on to report the entire length of 134. This value is believed to use all 9 bits, but currently there are no known cases of this value actually using the 9th bit.</td>
+                                <td>8-17</td>
+                                <td>Fake Length</td>
+                                <td>
+                                    <p>Specifies a "fake" length of the command in bytes. Some games will still report the full length of the command here, others will report only a part of the command's proper length here.</p>
+                                    <p>It is not absolute, but it seems like a general rule here is that, of games which do not report the real length here, they tend to specify a "length that actually matters", in other words of the bytes in the command, which ones actually are conveying information rather than just padding out the length (e.g. an attempt to set a sector, normally a 9 byte command, may be shortened to 7 here). Or, in the case of a read or write command, a game may only specify the length of the header/footer bytes, with the actual data being read or written subtracted from the length (e.g. a read command for 128 bytes of data, normally a total command length of 134, may have a length of 6 here, and if we combine that with the previous rule to trim useless bytes, we might even end up with 3 here for a read).</p>
+                                </td>
                             </tr>
                             <tr>
-                                <td>17-23</td>
-                                <td>Response Length</td>
-                                <td>Specifies length of the expected response in bytes. For memcard commands such as read and write (those which involve transferring actual data to and from the memcard), this value tends to exclude the transferred data and only include the header/footer bytes. The case where this is generally not true is with reads of ECC data, in which case it does include the length of the transferred ECC data. This value is believed to be 7 bits long.</td>
+                                <td>18-27</td>
+                                <td>Actual Length</td>
+                                <td>Specifies the actual length of the command in bytes. This will always contain the full length of the command, in bytes.</td>
                             </tr>
                             <tr>
-                                <td>24-31</td>
+                                <td>28-31</td>
                                 <td>Unused</td>
                                 <td>No known purpose.</td>
                             </tr>
