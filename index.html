@@ -110,16 +110,84 @@
                             <th>Description</th>
                         </thead>
                         <tbody>
-                            <td>SEND3</td>
-                            <td>0x1F808200 - 0x1F80823F</td>
-                            <td>int[16]</td>
-                            <td>Used internally by SIO2MAN to track how many commands it is sending, to which physical ports, and how long they are.</td>
+                            <tr>
+                                <td>SEND3</td>
+                                <td>0x1F808200 - 0x1F80823F</td>
+                                <td>int[16]</td>
+                                <td>Used internally by SIO2MAN to track how many commands it is sending, to which physical ports, and how long they are.</td>
+                            </tr>
+                            <tr>
+                                <td>SEND1/SEND2</td>
+                                <td>0x1F808240 - 0x1F80825F</td>
+                                <td>int[8]</td>
+                                <td>
+                                    Unknown. Collectively this register is an int[8] type but how specifically it works is a bit of a tangled mess. If bit 2 is cleared, SIO2MAN treats it as SEND1,
+                                    if bit 2 is set, SIO2MAN treats it as SEND2.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>FIFO_IN</td>
+                                <td>0x1F808260</td>
+                                <td>char</td>
+                                <td>Used by IOP to send commands to SIO2MAN.</td>
+                            </tr>
+                            <tr>
+                                <td>FIFO_OUT</td>
+                                <td>0x1F808264</td>
+                                <td>char</td>
+                                <td>Used by IOP to receive response data from SIO2MAN.</td>
+                            </tr>
+                            <tr>
+                                <td>CTRL</td>
+                                <td>0x1F808268</td>
+                                <td>int</td>
+                                <td>Control register for SIO2. Known bits include 0 for starting command transfers, and 2 and 3 which reset SIO2. Most variants of SIO2MAN seem to set this register to 0x000003BC on resets.</td>
+                            </tr>
+                            <tr>
+                                <td>RECV1</td>
+                                <td>0x1F80826C</td>
+                                <td>int</td>
+                                <td>Written after transfers, indicating if there was a peripheral connected.</td>
+                            </tr>
+                            <tr>
+                                <td>RECV2</td>
+                                <td>0x1F808270</td>
+                                <td>int</td>
+                                <td>Written after transfers, purpose unknown.</td>
+                            </tr>
+                            <tr>
+                                <td>RECV3</td>
+                                <td>0x1F808274</td>
+                                <td>int</td>
+                                <td>Written after transfers, the upper short seems to be the size of the data received.</td>
+                            </tr>
                         </tbody>
                     </table>
                     <h3 id="sio2regs">SIO2 Registers</h3>
                     <ul>
                         <li>
                             <a href="#send3">SEND3</a>
+                        </li>
+                        <li>
+                            <a href="#send1send2">SEND1/SEND2</a>
+                        </li>
+                        <li>
+                            <a href="#fifoin">FIFO_IN</a>
+                        </li>
+                        <li>
+                            <a href="#fifoout">FIFO_OUT</a>
+                        </li>
+                        <li>
+                            <a href="#ctrl">CTRL</a>
+                        </li>
+                        <li>
+                            <a href="#recv1">RECV1</a>
+                        </li>
+                        <li>
+                            <a href="#recv2">RECV2</a>
+                        </li>
+                        <li>
+                            <a href="#recv3">RECV3</a>
                         </li>
                     </ul>
                     <h4 id="send3">SEND3</h4>
@@ -161,6 +229,217 @@
                             </tr>
                         </tbody>
                     </table>
+                    <h4 id="send1send2">SEND1/SEND2</h4>
+                    <h4 id="fifoin">FIFO_IN</h4>
+                    <h4 id="fifoout">FIFO_OUT</h4>
+                    <h4 id="ctrl">CTRL</h4>
+                    <h4 id="recv1">RECV1</h4>
+                    <p>
+                        Classically believed to tell us strictly if any one device is plugged in. But after provoking a PS2 with some homebrew, blasting it with various pad commands, plugging and unplugging controllers all the while,
+                        some more nuanced behavior can be observed. While this list is not exhaustive of every possible open/disconnect pairing, I do believe it encapsulates all of the possible <i>outcomes</i>.
+                    </p>
+                    <p>
+                        These scenarios may need some additional runs - these were carried out with the PS2SDK pad module and its behavior seems flaky at best. I encountered multiple scenarios where polls were returning inputs from the wrong pad,
+                        or the printf statements in my code simply would not run, and there would be no indication of where or why the code just stopped running.
+                    </p>
+                    <table class="shrink-last">
+                        <thead>
+                            <th>Scenario</th>
+                            <th>RECV1</th>
+                            <th>Comments</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>No controllers plugged in at boot.</li>
+                                    </ul>
+                                </td>
+                                <td><code>0x001EB7C8</code></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>Pad 1 is plugged in at boot.</li>
+                                        <li>Pad 1 is opened.</li>
+                                    </ul>
+                                </td>
+                                <td><code>0x00001100</code></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 1 is plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 1 is opened.
+                                        </li>
+                                        <li>
+                                            Pad 1 is disconnected.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x0001D100</code></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 1 is plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 2 is opened.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x001EB7C8</code></td>
+                                <td>
+                                    Inconsistent. Initial test yielded the above, further attempts yielded <code>0x00001100</code>, but the test ELF (continuing to inspect the SIO2 transfer) would TLB miss shortly after. Retail games will always try to initialize pad 1 alone, or both pads together, so I consider this test result fun but meaningless.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 2 is plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 2 is opened.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x00001100</code></td>
+                                <td>Impractical to try to use port 2 without port 1, but technically nothing wrong with it.</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 2 is plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 2 is opened.
+                                        </li>
+                                        <li>
+                                            Pad 2 is disconnected.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x0001D100</code></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 2 is plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 1 is opened.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x001EB7C8</code></td>
+                                <td>Curiously, this run does not seem to TLB miss my PS2, unlike the test where I plugged in Pad 1 and opened Pad 2. A key difference is my test ELF freezes in place on this scenario, as opposed to the other which continued to try and check the pad.</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 1 and Pad 2 are plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 1 is opened.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x00001100</code></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 1 and Pad 2 are plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 1 is opened.
+                                        </li>
+                                        <li>
+                                            Pad 1 is disconnected.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x0001D100</code></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 1 and Pad 2 are plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 1 and Pad 2 are opened.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x00001200</code></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 1 and Pad 2 are plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 1 and Pad 2 are opened.
+                                        </li>
+                                        <li>
+                                            Pad 1 is disconnected.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x0001D200</code></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 1 and Pad 2 are plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 1 and Pad 2 are opened.
+                                        </li>
+                                        <li>
+                                            Pad 2 is disconnected.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x0002D200</code></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 1 and Pad 2 are plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 1 and Pad 2 are opened.
+                                        </li>
+                                        <li>
+                                            Pad 1 and Pad 2 are disconnected.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x0003D200</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4 id="recv2">RECV2</h4>
+                    <h4 id="recv3">RECV3</h4>
                     <h3 id="electric">Electrical Signals</h3>
                     <p>
                         SIO2 only has two ports servicing the four physical ports on the console. Memcard port 1 and pad port 1 are actually on the same command and data lanes; a command will be received by both physical ports,

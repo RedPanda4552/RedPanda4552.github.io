@@ -4,6 +4,12 @@ th
     white-space: nowrap;   
 }
 
+/* Don't do margin below <ul> or <li> tags if in a table. */
+table tbody td ul, table tbody td ul li
+{
+    margin-bottom: 0px;
+}
+
 /* Tables with class shrink-last will force no wrapping on all data cells except the very last */
 table.shrink-last td
 {
