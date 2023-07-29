@@ -833,12 +833,110 @@
             <hr/>
             <div class="row">
                 <div class="twelve columns">
-                    <h2 id="memcard">PlayStation 2 Controllers</h2>
+                    <h2 id="pad">PlayStation 2 Controllers</h2>
                     <ul>
                         <li>
-                            <a href="#"></a>
+                            <a href="#pad-digital-buttons">Digital Button Mapping</a>
                         </li>
                     </ul>
+                    <h3 id="pad-digital-buttons">Digital Button Mapping</h3>
+                    <p>All controllers will use two bytes in positions 3 and 4 (zero indexed) of their poll commands to store all of the digital button states. The table below shows which bits correspond to which buttons.</p>
+                    <p>Byte 3:</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Bit 7 (MSB)</th>
+                                <th>Bit 6</th>
+                                <th>Bit 5</th>
+                                <th>Bit 4</th>
+                                <th>Bit 3</th>
+                                <th>Bit 2</th>
+                                <th>Bit 1</th>
+                                <th>Bit 0 (LSB)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Left</td>
+                                <td>Down</td>
+                                <td>Right</td>
+                                <td>Up</td>
+                                <td>Start</td>
+                                <td>R3</td>
+                                <td>L3</td>
+                                <td>Select</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p>Byte 4:</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Bit 7 (MSB)</th>
+                                <th>Bit 6</th>
+                                <th>Bit 5</th>
+                                <th>Bit 4</th>
+                                <th>Bit 3</th>
+                                <th>Bit 2</th>
+                                <th>Bit 1</th>
+                                <th>Bit 0 (LSB)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Square</td>
+                                <td>Cross</td>
+                                <td>Circle</td>
+                                <td>Triangle</td>
+                                <td>R1</td>
+                                <td>L1</td>
+                                <td>R2</td>
+                                <td>L2</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h3 id="pad-identity-handshake">Pad Identification/Handshake Commands and Responses</h3>
+                    <p>Most pads, with the exception of the PS1 digital pad, can be issued configuration commands by the PS2 to change their operating mode and identify their capabilities to the PS2.</p>
+                    <p>While there are some specific commands which are situational and will have specific details explained, many of these commands are static, predictable responses simply aimed to tell the PS2 what type of pad it is or how many of some thing the pad has.</p>
+                    <h4>PS1 Digital Pad</h4>
+                    <p>The most basic pad to ever grace the Playstation ecosystem. 14 face buttons, all digital on/off values with no analog sticks or pressure capability.</p>
+                    <p>This controller does not support any configuration commands, including the command to enter/exit config mode itself.</p>
+                    <ul>
+                        <li>
+                            <a href="#pad-digital-poll">Poll</a>
+                        </li>
+                        <li>
+                            <a href="#pad-digital-config">Config</a>
+                        </li>
+                    </ul>
+                    <h5 id="pad-digital-poll">Poll</h5>
+                    <p>Get all inputs on the controller. Plain and simple. Bytes 3 and 4 are the digital mappings.</p>
+                    <table>
+                        <tr>
+                            <th>Byte (Zero Indexed)</td>
+                            <td>0</td>
+                            <td>1</td>
+                            <td>2</td>
+                            <td>3</td>
+                            <td>4</td>
+                        </tr>
+                        <tr>
+                            <th>Command</th>
+                            <td>0x01</td>
+                            <td>0x42</td>
+                            <td>0x00</td>
+                            <td>0x00</td>
+                            <td>0x00</td>
+                        </tr>
+                        <tr>
+                            <th>Data</th>
+                            <td>0xFF</td>
+                            <td>0x41</td>
+                            <td>0x5A</td>
+                            <td>0xFF</td>
+                            <td>0xFF</td>
+                        </tr>
+                    </table>
                 </div>
             </div>
             <hr/>
