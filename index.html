@@ -937,6 +937,38 @@
                             <td>0xFF</td>
                         </tr>
                     </table>
+                    <h5 id="pad-digital-config">Config</h5>
+                    <p>
+                        Ask the controller to enter or exit config mode. Digital pads may receive this command from the PS2 as it first doesn't know if the pad is truly digital only. The pad will respond that it has no idea what the command is,
+                        and that tells the PS2 it is a digital pad.
+                    </p>
+                    <p>Interesting note - the RECV1 value on this command with only one digital pad inserted in particular is <code>0x0001D100</code>, as opposed to <code>0x00001100</code> as expected for a normal poll.</p>
+                    <table>
+                        <tr>
+                            <th>Byte (Zero Indexed)</td>
+                            <td>0</td>
+                            <td>1</td>
+                            <td>2</td>
+                            <td>3</td>
+                            <td>4</td>
+                        </tr>
+                        <tr>
+                            <th>Command</th>
+                            <td>0x01</td>
+                            <td>0x43</td>
+                            <td>0x00</td>
+                            <td>0x01</td>
+                            <td>0x00</td>
+                        </tr>
+                        <tr>
+                            <th>Data</th>
+                            <td>0xFF</td>
+                            <td>0x41</td>
+                            <td>0xFF</td>
+                            <td>0xFF</td>
+                            <td>0xFF</td>
+                        </tr>
+                    </table>
                 </div>
             </div>
             <hr/>
