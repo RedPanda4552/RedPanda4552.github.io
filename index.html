@@ -42,6 +42,9 @@
                             <a href="#pad">PlayStation 2 Controllers</a>
                         </li>
                         <li>
+                            <a href="#multitap">PlayStation 2 Multitaps</a>
+                        </li>
+                        <li>
                             <a href="#src">Sources</a>
                         </li>
                     </ul>
@@ -972,6 +975,28 @@
                             <td>0xFF</td>
                         </tr>
                     </table>
+                </div>
+            </div>
+            <hr/>
+            <div class="row">
+                <div class="twelve columns">
+                    <h2 id="multitaps">PlayStation 2 Multitaps</h2>
+                    <p>The multitap is a peripheral which plugs in to both a memory card and pad port at the same time. It expands each of these ports into four slots. Two multitaps can be plugged in for a total of eight slots.</p>
+                    <p>Internally, each of the two ports gets four slots assigned to it and these map predictably to the letters shown on the multitap. Slot A = 0, Slot B = 1, Slot C = 2, Slot D = 3.</p>
+                    <p>
+                        Pad and memcard functions almost always take port and slot parameters. The port refers to the two physical port on the front of the PS2, and slot refers to the four multitap slots.
+                        If the software has no intent to use the multitaps, the slot is always 0.
+                    </p>
+                    <p>Multitaps are effectively switches or routing devices. It is assumed that, after being plugged in, if they do not receive any commands to change the routing target, they default to just forward all commands to slot A.</p>
+                    <ul>
+                        <li>
+                            <a href="#mtap-fmcb">FreeMCBoot Compatibility</a>
+                        </li>
+                    </ul>
+                    <h3 id="mtap-fmcb">FreeMCBoot Compatibility</h3>
+                    <p>
+                        FreeMCBoot memcards can only be successfully used in multitap slot A. Inserting a FreeMCBoot memcard into any other slot will have no effect and the system will boot normally.
+                    </p>
                 </div>
             </div>
             <hr/>
