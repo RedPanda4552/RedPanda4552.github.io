@@ -770,13 +770,67 @@
                     <p>Memcards accept a number of commands, encoded as streams of bytes sent over the SIO2 bus.</p>
                     <ul>
                         <li>
-                            <a href="#probe">Probe</a>
+                            <a href="#probe">0x11 - Probe</a>
                         </li>
                         <li>
-                            <a href="#unkwritedel">Unknown (Write/Delete End)</a>
+                            <a href="#unkwritedel">0x12 - Unknown (Write/Delete End)</a>
+                        </li>
+                        <li>
+                            <a href="#setpageerase">0x21 - Set Page (Erase)</a>
+                        </li>
+                        <li>
+                            <a href="#setpagewrite">0x22 - Set Page (Write)</a>
+                        </li>
+                        <li>
+                            <a href="#setpageread">0x23 -  Set Page (Read)</a>
+                        </li>
+                        <li>
+                            <a href="#getspecs">0x26 - Get Specs</a>
+                        </li>
+                        <li>
+                            <a href="#setterminator">0x27 - Set Terminator</a>
+                        </li>
+                        <li>
+                            <a href="#getterminator">0x28 - Get Terminator</a>
+                        </li>
+                        <li>
+                            <a href="#writedata">0x42 - Write Data</a>
+                        </li>
+                        <li>
+                            <a href="#readdata">0x43 - Read Data</a>
+                        </li>
+                        <li>
+                            <a href="#ps1read">0x52 - PS1 Read</a>
+                        </li>
+                        <li>
+                            <a href="#ps1state">0x53 - PS1 State</a>
+                        </li>
+                        <li>
+                            <a href="#ps1write">0x57 - PS1 Write</a>
+                        </li>
+                        <li>
+                            <a href="#ps1pocketstationprobe">0x58 - PS1 Pocketstation Probe</a>
+                        </li>
+                        <li>
+                            <a href="#readwriteend">0x81 - Read/Write End</a>
+                        </li>
+                        <li>
+                            <a href="#eraseblock">0x82 - Erase Block</a>
+                        </li>
+                        <li>
+                            <a href="#unkboot">0xBF - Unknown Boot</a>
+                        </li>
+                        <li>
+                            <a href="#authenticationxor">0xF0 - Authentication (Multiple XOR)</a>
+                        </li>
+                        <li>
+                            <a href="#authenticationf3">0xF3 - Authentication (F3)</a>
+                        </li>
+                        <li>
+                            <a href="#authenticationf7">0xF7 - Authentication (F7)</a>
                         </li>
                     </ul>
-                    <h4 id="probe">Probe</h4>
+                    <h4 id="probe">0x11 - Probe</h4>
                     <p>A basic heartbeat command to test if a memcard is present in a port. Only the last two response bytes matter, they should be 0x2B and the memcard's current terminator byte.</p>
                     <table>
                         <thead>
@@ -803,7 +857,7 @@
                             </tr>
                         </tbody>
                     </table>
-                    <h4 id="unkwritedel">Unknown (Write/Delete End)</h4>
+                    <h4 id="unkwritedel">0x12 - Unknown (Write/Delete End)</h4>
                     <p>A command which games send to memcards after writes or erases. Its purpose is currently unknown. A theory is that this is some kind of acknowledge signal; sceMcSync is used on the EE to check if a memcard function has completed or stall until it does. Perhaps sceMcSync is waiting for this command to be processed?</p>
                     <p>This command conventionally has a length of 4 bytes. Only the last two response bytes matter, they should be 0x2B and the memcard's current terminator byte. The 3rd byte seems to switch between 0x00 and 0x3F, but this appears to be arbitrary to the command completing. Additionally a value may appear at command byte 6, beyond the length specified in the SEND3 register when this command is used, but this too appears arbitrary to completion.</p>
                     <table>
@@ -831,6 +885,24 @@
                             </tr>
                         </tbody>
                     </table>
+                    <h4 id="setpageerase">0x21 - Set Page (Erase)</h4>
+                    <h4 id="setpagewrite">0x22 - Set Page (Write)</h4>
+                    <h4 id="setpageread">0x23 - Set Page (Read)</h4>
+                    <h4 id="getspecs">0x26 - Get Specs</h4>
+                    <h4 id="setterminator">0x27 - Set Terminator</h4>
+                    <h4 id="getterminator">0x28 - Get Terminator</h4>
+                    <h4 id="writedata">0x42 - Write Data</h4>
+                    <h4 id="readdata">0x43 - Read Data</h4>
+                    <h4 id="ps1read">0x52 - PS1 Read</h4>
+                    <h4 id="ps1state">0x53 - PS1 State</h4>
+                    <h4 id="ps1write">0x57 - PS1 Write</h4>
+                    <h4 id="ps1pocketstationprobe">0x58 - PS1 Pocketstation Probe</h4>
+                    <h4 id="readwriteend">0x81 - Read/Write End</h4>
+                    <h4 id="eraseblock">0x82 - Erase Block</h4>
+                    <h4 id="unkboot">0xBF - Unknown Boot</h4>
+                    <h4 id="authenticationxor">0xF0 - Authentication (Multiple XOR)</h4>
+                    <h4 id="authenticationf3">0xF3 - Authentication (F3)</h4>
+                    <h4 id="authenticationf7">0xF7 - Authentication (F7)</h4>
                 </div>
             </div>
             <hr/>
