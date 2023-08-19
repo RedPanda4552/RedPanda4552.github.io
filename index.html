@@ -916,6 +916,9 @@
                         <li>
                             <a href="#pad-identity-handshake">Pad Identification/Handshake Commands and Responses</a>
                         </li>
+                        <li>
+                            <a href="#pad-ds2-vibration-motors">DualShock 2 Vibration Motors</a>
+                        </li>
                     </ul>
                     <h3 id="pad-digital-buttons">Digital Button Mapping</h3>
                     <p>All controllers will use two bytes in positions 3 and 4 (zero indexed) of their poll commands to store all of the digital button states. The table below shows which bits correspond to which buttons.</p>
@@ -1047,6 +1050,78 @@
                             <td>0xFF</td>
                         </tr>
                     </table>
+                    <h3 id="pad-ds2-vibration-motors">DualShock 2 Vibration Motors</h3>
+                    <ul>
+                        <li>
+                            <a href="#pad-ds2-motor-setup">Motor Setup</a>
+                        </li>
+                        <li>
+                            <a href="#pad-ds2-motor-power">Motor Power</a>
+                        </li>
+                    </ul>
+                    <h4 id="pad-ds2-motor-setup">Motor Setup</h4>
+                    <p>The DualShock 2 has two vibration motors, small and large. They are controlled by the 3rd and 4th (zero indexed) command bytes of a pad poll. Take the following pad poll command for a digital pad (analog and pressure values simply don't matter here):</p>
+                    <table>
+                        <tr>
+                            <th>Byte (Zero Indexed)</td>
+                            <td>0</td>
+                            <td>1</td>
+                            <td>2</td>
+                            <td>3</td>
+                            <td>4</td>
+                        </tr>
+                        <tr>
+                            <th>Command</th>
+                            <td>0x01</td>
+                            <td>0x42</td>
+                            <td>0x00</td>
+                            <td>0x01</td>
+                            <td>0xff</td>
+                        </tr>
+                        <tr>
+                            <th>Data</th>
+                            <td>0xFF</td>
+                            <td>0x41</td>
+                            <td>0x5A</td>
+                            <td>0xFF</td>
+                            <td>0xFF</td>
+                        </tr>
+                    </table>
+                    <p>Under normal circumstances, the small motor is controlled by the 3rd byte, and large motor by the 4th. This particular example would turn on the small motor with power level 0x01, and turn on the large motor with power level 0xff. However, the pad protocol supports remapping these.</p>
+                    <p>The vibration config command's 3rd and 4th (zero indexed) bytes correspond to small and large motor. Whichever values are supplied in these positions of the console's command then determines which byte of a pad poll that motor will get its power level from.</p>
+                    <p>The normal thing to do would be for the 3rd byte to be 0x00, and the 4th byte to be 0x01. In other words, the small motor will look at the first vibration value (the 3rd byte of the poll), and the large motor will look at the second vibration value (the 4th byte of the poll).</p>
+                    <p>It is uncommon, but some games such as FFX do rearrange the motors. Take the example of a vibration config command where the 3rd byte is 0x01, and the 4th byte is 0x00; this would set small motor to the second vibration value (the 4th byte of the poll), and large motor to the first vibration value (the 3rd byte of the poll). In such a case, if you then wanted to turn on both motors to full power, your pad poll would now look like:</p>
+                    <table>
+                        <tr>
+                            <th>Byte (Zero Indexed)</td>
+                            <td>0</td>
+                            <td>1</td>
+                            <td>2</td>
+                            <td>3</td>
+                            <td>4</td>
+                        </tr>
+                        <tr>
+                            <th>Command</th>
+                            <td>0x01</td>
+                            <td>0x42</td>
+                            <td>0x00</td>
+                            <td>0xff</td>
+                            <td>0x01</td>
+                        </tr>
+                        <tr>
+                            <th>Data</th>
+                            <td>0xFF</td>
+                            <td>0x41</td>
+                            <td>0x5A</td>
+                            <td>0xFF</td>
+                            <td>0xFF</td>
+                        </tr>
+                    </table>
+                    <h4 id="pad-ds2-motor-power">Motor Power</h4>
+                    <p>Power delivery to the motors is handled directly in software. Both the small motor and large motor are set using an unsigned char value.</p>
+                    <p>The small motor is binary and only considers the LSB of the unsigned char. In other words, if it is an odd number, the small motor will turn on. If an even number, it will turn off.</p>
+                    <p>The large motor considers the full range of the unsigned char and will power on accordingly. However, due to either a hardware cutoff, the motor's physical weight being to high, or some combination of both, the motor will only start actually spinning at a certain power level.</p>
+                    <p>On my DS2, the first perceivable large motor vibration was felt at 0x40, but it was barely able to work, and simply shaking the controller a little was enough for the weight of the motor to overcome the power delivered to it.</p>
                 </div>
             </div>
             <hr/>
