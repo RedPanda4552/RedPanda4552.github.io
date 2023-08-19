@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>PlayStation 2 SIO2 Docs</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta property="og:title" content="PlayStation 2 SIO2 Docs">
+        <meta property="og:description" content="This document outlines the Serial Input Output 2 bus and the memory cards and controllers it is used to communicate with">
+        <meta property="og:url" content="https://redpanda4552.github.io/ps2-sio2-docs/index.html">
+        <meta property="og:image" content="https://redpanda4552.github.io/assets/favicon.png">
+        <meta name="theme-color" content="#006FC5">
+
+        <link rel="stylesheet" href="/css/main.css">
+        <link rel="stylesheet" href="/css/skeleton.css">
+        <link rel="stylesheet" href="/css/normalize.css">
+
+        <link rel="icon" type="image/png" href="/assets/favicon.png">
+    </head>
+    <body>
+        <div class="container">
+            <div class="row">
+                <div class="twelve columns">
+                    <h1>PlayStation 2: Serial Input Output 2, Memory Cards, Controllers, Multitaps, and More!</h1>
+                    <p>This document outlines the Serial Input Output 2 bus and the memory cards, controllers, multitaps, and anything else developers tried to cram into those ports.</p>
+                    <p>This document is a work in progress. Updates will continue to roll in as I have time to work on it.</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="twelve columns">
+                    <h2>Table of Contents</h2>
+                    <ul>
+                        <li>
+                            <a href="#terms">Words, Terms, Slang, Lingo</a>
+                        </li>
+                        <li>
+                            <a href="#sio2">Serial Input Output 2 (SIO2)</a>
+                        </li>
+                        <li>
+                            <a href="#memcard">PlayStation 2 Memory Cards</a>
+                        </li>
+                        <li>
+                            <a href="#pad">PlayStation 2 Controllers</a>
+                        </li>
+                        <li>
+                            <a href="#multitap">PlayStation 2 Multitaps</a>
+                        </li>
+                        <li>
+                            <a href="#src">Sources</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <hr/>
+            <div class="row">
+                <div class="twelve columns">
+                    <h2 id="terms">Words, Terms, Slang, Lingo</h2>
+                    <p>Throughout this document there will be a number of words, terms, slang, lingo, whatever you want to call it. Here's my attempt at defining some of these.</p>
+                    <table>
+                        <thead>
+                            <th>Word</th>
+                            <th>Meaning</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>SIO2</td>
+                                <td>"Serial Input Output 2"</td>
+                            </tr>
+                            <tr>
+                                <td>memcard</td>
+                                <td>"memory card"</td>
+                            </tr>
+                            <tr>
+                                <td>fs</td>
+                                <td>"filesystem", "file system", "file-system"</td>
+                            </tr>
+                            <tr>
+                                <td>ECC</td>
+                                <td>"Error Correction Code"</td>
+                            </tr>
+                            <tr>
+                                <td>FAT</td>
+                                <td>"File Allocation Table"</td>
+                            </tr>
+                            <tr>
+                                <td>pad</td>
+                                <td>"controller", "game pad", "joy pad"</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <hr/>
+            <div class="row">
+                <div class="twelve columns">
+                    <h2 id="sio2">Serial Input Output 2 (SIO2)</h2>
+                    <ul>
+                        <li>
+                            <a href="#sio2regmap">SIO2 Register Memory Map</a>
+                        </li>
+                        <li>
+                            <a href="#sio2regs">SIO2 Registers</a>
+                        </li>
+                        <li>
+                            <a href="#electric">Electrical Signals</a>
+                        </li>
+                    </ul>
+                    <h3 id="sio2regmap">SIO2 Register Memory Map</h3>
+                    <table class="shrink-last">
+                        <thead>
+                            <th>Name</th>
+                            <th>Address</th>
+                            <th>Data Type</th>
+                            <th>Description</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>SEND3</td>
+                                <td>0x1F808200 - 0x1F80823F</td>
+                                <td>int[16]</td>
+                                <td>Used internally by SIO2MAN to track how many commands it is sending, to which physical ports, and how long they are.</td>
+                            </tr>
+                            <tr>
+                                <td>SEND1/SEND2</td>
+                                <td>0x1F808240 - 0x1F80825F</td>
+                                <td>int[8]</td>
+                                <td>
+                                    Unknown. Collectively this register is an int[8] type but how specifically it works is a bit of a tangled mess. If bit 2 is cleared, SIO2MAN treats it as SEND1,
+                                    if bit 2 is set, SIO2MAN treats it as SEND2.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>FIFO_IN</td>
+                                <td>0x1F808260</td>
+                                <td>char</td>
+                                <td>Used by IOP to send commands to SIO2MAN.</td>
+                            </tr>
+                            <tr>
+                                <td>FIFO_OUT</td>
+                                <td>0x1F808264</td>
+                                <td>char</td>
+                                <td>Used by IOP to receive response data from SIO2MAN.</td>
+                            </tr>
+                            <tr>
+                                <td>CTRL</td>
+                                <td>0x1F808268</td>
+                                <td>int</td>
+                                <td>Control register for SIO2. Known bits include 0 for starting command transfers, and 2 and 3 which reset SIO2. Most variants of SIO2MAN seem to set this register to 0x000003BC on resets.</td>
+                            </tr>
+                            <tr>
+                                <td>RECV1</td>
+                                <td>0x1F80826C</td>
+                                <td>int</td>
+                                <td>Written after transfers, indicating if there was a peripheral connected.</td>
+                            </tr>
+                            <tr>
+                                <td>RECV2</td>
+                                <td>0x1F808270</td>
+                                <td>int</td>
+                                <td>Written after transfers, purpose unknown.</td>
+                            </tr>
+                            <tr>
+                                <td>RECV3</td>
+                                <td>0x1F808274</td>
+                                <td>int</td>
+                                <td>Written after transfers, the upper short seems to be the size of the data received.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h3 id="sio2regs">SIO2 Registers</h3>
+                    <ul>
+                        <li>
+                            <a href="#send3">SEND3</a>
+                        </li>
+                        <li>
+                            <a href="#send1send2">SEND1/SEND2</a>
+                        </li>
+                        <li>
+                            <a href="#fifoin">FIFO_IN</a>
+                        </li>
+                        <li>
+                            <a href="#fifoout">FIFO_OUT</a>
+                        </li>
+                        <li>
+                            <a href="#ctrl">CTRL</a>
+                        </li>
+                        <li>
+                            <a href="#recv1">RECV1</a>
+                        </li>
+                        <li>
+                            <a href="#recv2">RECV2</a>
+                        </li>
+                        <li>
+                            <a href="#recv3">RECV3</a>
+                        </li>
+                    </ul>
+                    <h4 id="send3">SEND3</h4>
+                    <p>This register is an array of 16 ints. For each int:</p>
+                    <table class="shrink-last">
+                        <thead>
+                            <th>Bit</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>0</td>
+                                <td>Port</td>
+                                <td>Which physical port on the front of the console is being targeted. When unset, this maps to "1" on the front of the console, when set this maps to "2" on the front of the console.</td>
+                            </tr>
+                            <tr>
+                                <td>1-7</td>
+                                <td>Unused</td>
+                                <td>No known purpose.</td>
+                            </tr>
+                            <tr>
+                                <td>8-17</td>
+                                <td>Fake Length</td>
+                                <td>
+                                    <p>Specifies a "fake" length of the command in bytes. Some games will still report the full length of the command here, others will report only a part of the command's proper length here.</p>
+                                    <p>It is not absolute, but it seems like a general rule here is that, of games which do not report the real length here, they tend to specify a "length that actually matters", in other words of the bytes in the command, which ones actually are conveying information rather than just padding out the length (e.g. an attempt to set a sector, normally a 9 byte command, may be shortened to 7 here). Or, in the case of a read or write command, a game may only specify the length of the header/footer bytes, with the actual data being read or written subtracted from the length (e.g. a read command for 128 bytes of data, normally a total command length of 134, may have a length of 6 here, and if we combine that with the previous rule to trim useless bytes, we might even end up with 3 here for a read).</p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>18-27</td>
+                                <td>Actual Length</td>
+                                <td>Specifies the actual length of the command in bytes. This will always contain the full length of the command, in bytes.</td>
+                            </tr>
+                            <tr>
+                                <td>28-31</td>
+                                <td>Unused</td>
+                                <td>No known purpose.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4 id="send1send2">SEND1/SEND2</h4>
+                    <h4 id="fifoin">FIFO_IN</h4>
+                    <h4 id="fifoout">FIFO_OUT</h4>
+                    <h4 id="ctrl">CTRL</h4>
+                    <h4 id="recv1">RECV1</h4>
+                    <p>
+                        Classically believed to tell us strictly if any one device is plugged in. But after provoking a PS2 with some homebrew, blasting it with various pad commands, plugging and unplugging controllers all the while,
+                        some more nuanced behavior can be observed. While this list is not exhaustive of every possible open/disconnect pairing, I do believe it encapsulates all of the possible <i>outcomes</i>.
+                    </p>
+                    <p>
+                        These scenarios may need some additional runs - these were carried out with the PS2SDK pad module and its behavior seems flaky at best. I encountered multiple scenarios where polls were returning inputs from the wrong pad,
+                        or the printf statements in my code simply would not run, and there would be no indication of where or why the code just stopped running.
+                    </p>
+                    <table class="shrink-last">
+                        <thead>
+                            <th>Scenario</th>
+                            <th>RECV1</th>
+                            <th>Comments</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>No controllers plugged in at boot.</li>
+                                    </ul>
+                                </td>
+                                <td><code>0x001EB7C8</code></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>Pad 1 is plugged in at boot.</li>
+                                        <li>Pad 1 is opened.</li>
+                                    </ul>
+                                </td>
+                                <td><code>0x00001100</code></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 1 is plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 1 is opened.
+                                        </li>
+                                        <li>
+                                            Pad 1 is disconnected.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x0001D100</code></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 1 is plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 2 is opened.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x001EB7C8</code></td>
+                                <td>
+                                    Inconsistent. Initial test yielded the above, further attempts yielded <code>0x00001100</code>, but the test ELF (continuing to inspect the SIO2 transfer) would TLB miss shortly after. Retail games will always try to initialize pad 1 alone, or both pads together, so I consider this test result fun but meaningless.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 2 is plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 2 is opened.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x00001100</code></td>
+                                <td>Impractical to try to use port 2 without port 1, but technically nothing wrong with it.</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 2 is plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 2 is opened.
+                                        </li>
+                                        <li>
+                                            Pad 2 is disconnected.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x0001D100</code></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 2 is plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 1 is opened.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x001EB7C8</code></td>
+                                <td>Curiously, this run does not seem to TLB miss my PS2, unlike the test where I plugged in Pad 1 and opened Pad 2. A key difference is my test ELF freezes in place on this scenario, as opposed to the other which continued to try and check the pad.</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 1 and Pad 2 are plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 1 is opened.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x00001100</code></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 1 and Pad 2 are plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 1 is opened.
+                                        </li>
+                                        <li>
+                                            Pad 1 is disconnected.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x0001D100</code></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 1 and Pad 2 are plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 1 and Pad 2 are opened.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x00001200</code></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 1 and Pad 2 are plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 1 and Pad 2 are opened.
+                                        </li>
+                                        <li>
+                                            Pad 1 is disconnected.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x0001D200</code></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 1 and Pad 2 are plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 1 and Pad 2 are opened.
+                                        </li>
+                                        <li>
+                                            Pad 2 is disconnected.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x0002D200</code></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>
+                                            Pad 1 and Pad 2 are plugged in at boot.
+                                        </li>
+                                        <li>
+                                            Pad 1 and Pad 2 are opened.
+                                        </li>
+                                        <li>
+                                            Pad 1 and Pad 2 are disconnected.
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td><code>0x0003D200</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4 id="recv2">RECV2</h4>
+                    <h4 id="recv3">RECV3</h4>
+                    <h3 id="electric">Electrical Signals</h3>
+                    <p>
+                        SIO2 only has two ports servicing the four physical ports on the console. Memcard port 1 and pad port 1 are actually on the same command and data lanes; a command will be received by both physical ports,
+                        and its response data will also share the same lane into the PS2. Likewise, if the PS2 were not itself keeping track of which peripheral it was talking to,
+                        it would not be able to infer which peripheral just responded on the matching data lane. The first byte of a command specifies it's intended target,
+                        presumably so the controllers on the peripherals know whether to listen or not. It is unclear at what point a peripheral may begin to start listening again if it ignores a command;
+                        one might think "perhaps just wait until the next byte matching that device", however it is equally possible that a command intended for another device may just happen to have that value somewhere inside, so this is not viable.
+                        It is more likely that the peripheral is waiting for an interrupt or some other signal to come in over a separate circuit.
+                    </p>
+                    <p>
+                        When no device is present, attempting to read the data lane anyways results in a 0xff value. When a device is present, this "default value" changes to 0x00. Devices can then change the value as needed to respond to commands.
+                    </p>
+                </div>
+            </div>
+            <hr/>
+            <div class="row">
+                <div class="twelve columns">
+                    <h2 id="memcard">PlayStation 2 Memory Cards</h2>
+                    <ul>
+                        <li>
+                            <a href="#mcfs">Memcard Filesystem</a>
+                        </li>
+                        <li>
+                            <a href="#cmds">Memcard Commands</a>
+                        </li>
+                    </ul>
+                    <h3 id="mcfs">Memcard Filesystem</h3>
+                    <ul>
+                        <li>
+                            <a href="#structs">Data Structures</a>
+                        </li>
+                        <li>
+                            <a href="#superblock">Superblock</a>
+                        </li>
+                        <li>
+                            <a href="#fat">File Allocation Table (FAT)</a>
+                        </li>
+                        <li>
+                            <a href="#dir">Directory Tree</a>
+                        </li>
+                        <li>
+                            <a href="#format">Formatting</a>
+                        </li>
+                    </ul>
+                    <h4 id="structs">Data Structures</h4>
+                    <p>The PS2 memcard filesystem can be broken down into a few different data structures or organizational units.</p>
+                    <ul>
+                        <li>
+                            <a href="#page">Page</a>
+                        </li>
+                        <li>
+                            <a href="#cluster">Cluster</a>
+                        </li>
+                        <li>
+                            <a href="#eraseblock">Erase Block</a>
+                        </li>
+                    </ul>
+                    <h5 id="page">Page</h5>
+                    <p>A group of data bytes, followed by ECC bytes. The data bytes can be either 512 or 1024 bytes long; this is the Page Length attribute specified in the superblock. OEM memcards from Sony will always use 512 bytes. Though the 1024 byte size is supported, there are no known cases (yet) of a real memcard actually using this.</p>
+                    <p>The ECC bytes following the data bytes are 16 bytes long if the page length is 512, or 32 bytes long if the page length is 1024. In either case, every 128 bytes of data corresponds to 3 bytes of ECC data.</p>
+                    <table>
+                        <thead>
+                            <th>Physical Size</th>
+                            <th>Data Bytes Used</th>
+                            <th>Data Bytes Total</th>
+                            <th>ECC Bytes Used</th>
+                            <th>ECC Bytes Total</th>
+                            <th>Data Byte to ECC Byte Mapping</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>528</td>
+                                <td>512</td>
+                                <td>512</td>
+                                <td>12</td>
+                                <td>16</td>
+                                <td>128 bytes data = 3 bytes ECC</td>
+                            </tr>
+                            <tr>
+                                <td>1056</td>
+                                <td>1024</td>
+                                <td>1024</td>
+                                <td>24</td>
+                                <td>32</td>
+                                <td>128 bytes data = 3 bytes ECC</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h5 id="cluster">Cluster</h5>
+                    <p>A group of pages. Clusters can be 1 or 2 pages long; this is the Pages Per Cluster attribute specified in the superblock. OEM memcards from Sony will always use Pages Per Cluster = 2. If the Page Length attribute of the superblock is 1024, then Pages Per Cluster must be 1.</p>
+                    <table>
+                        <thead>
+                            <th>Page Length</th>
+                            <th>Pages Per Cluster = 1</th>
+                            <th>Pages Per Cluster = 2</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>512</td>
+                                <td>Supported</td>
+                                <td>Supported</td>
+                            </tr>
+                            <tr>
+                                <td>1024</td>
+                                <td>Supported</td>
+                                <td>NOT Supported</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p>Clusters are primarily used in the FAT and for navigation. Presumably, it requires a smaller FAT this way (at least for OEM memcards where 1 cluster = 2 pages = 1024 data bytes); a single FAT entry points to two pages worth of data, rather than having a FAT entry for every page. The disadvantage is that small, loose files can lead to wasted space. A single FAT entry points to one cluster, so whatever file belongs to that FAT entry ends up consuming both pages even if it is only 256 bytes long, leading to 768 unused data bytes.</p>
+                    <p>Directories do remedy this partially by leveraging each individual page as a directory entry. When populating a directory tree for a memory card, the FAT is traversed and this tells you what clusters and in what order to traverse them to populate the directory tree. When a cluster is visited, it is simply expected that each page can be an individual directory entry, and so both pages at that cluster position are checked individually.</p>
+                    <p>Contrast with files, a single file is given a single cluster position, and there is no indication or expectation that two files can live on different pages in the same cluster, so any unused space across the entire cluster is lost until the file is deleted and the cluster's pages can be reallocated to a new file or directory entry.</p>
+                    <h5 id="eraseblock">Erase Block</h5>
+                    <p>A group of pages. Erase blocks default to 16 pages long; this is the Pages Per Erase Block attribute specified in the superblock. 16 is the maximum number of pages supported per erase block. It is unclear whether this number can be reduced.</p>
+                    <p>Erase blocks are the units of which a memcard can be erased. Because memcards are flash memory, bits can only be flipped one direction. In all known cases, the "default" position of a bit is 1, and bits can only be flipped to 0. To flip back to 1, an entire erase block must be "cleared" to 1's. As such, prior to any write operation, a page's entire erase block must be erased first.</p>
+                    <h4 id="superblock">Superblock</h4>
+                    <p>The superblock is the "brain" of the memcard. This page stores information describing the size and health of the memcard.</p>
+                    <p>
+                        <i>Quotes found in the below table are to express that something is a string value. The values themselves do not contain quote characters.</i>
+                    </p>
+                    <table class="shrink-last">
+                        <thead>
+                            <th>Offset</th>
+                            <th>Name</th>
+                            <th>Data Type</th>
+                            <th>Default</th>
+                            <th>Description</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>0x00</td>
+                                <td>Format String</td>
+                                <td>char[28]</td>
+                                <td>"Sony PS2 Memory Card Format "</td>
+                                <td>Constant ASCII string. Evaluated when checking if a memcard is formatted. Will be present on a formatted memcard, missing otherwise. This string ends with a space, and is not null terminated!</td>
+                            </tr>
+                            <tr>
+                                <td>0x1C</td>
+                                <td>Version</td>
+                                <td>char[12]</td>
+                                <td>"1.x.0.0"</td>
+                                <td>Version string. Version "1.2.x.y" has full support for the Bad Block List, older versions have limited or none. This string is null terminated (unused bytes are null terminators). It's currently unclear if this version number is provisioned by the console or the card.</td>
+                            </tr>
+                            <tr>
+                                <td>0x28</td>
+                                <td>Page Length</td>
+                                <td>short</td>
+                                <td>512</td>
+                                <td>Size in bytes of a memcard page. Can be either 512 or 1024. No known cases of a real memcard using 1024.</td>
+                            </tr>
+                            <tr>
+                                <td>0x2A</td>
+                                <td>Pages Per Cluster</td>
+                                <td>short</td>
+                                <td>2</td>
+                                <td>Number of pages in a memcard cluster. Can be 1 or 2 if page length is 512, must be 1 if page length is 1024.</td>
+                            </tr>
+                            <tr>
+                                <td>0x2C</td>
+                                <td>Pages Per Block</td>
+                                <td>short</td>
+                                <td>16</td>
+                                <td>Number of pages in a memcard erase block. </td>
+                            </tr>
+                            <tr>
+                                <td>0x2E</td>
+                                <td>Unknown</td>
+                                <td>short</td>
+                                <td>0xff00</td>
+                                <td>Doesn't appear to be used, purpose unknown.</td>
+                            </tr>
+                            <tr>
+                                <td>0x30</td>
+                                <td>Clusters On Card</td>
+                                <td>int</td>
+                                <td>8192</td>
+                                <td>Size of the memcard in clusters.</td>
+                            </tr>
+                            <tr>
+                                <td>0x34</td>
+                                <td>Allocation Offset</td>
+                                <td>int</td>
+                                <td>0x41</td>
+                                <td>Offset of the first "allocatable" cluster. Offset is relative to the beginning of the memcard. Cluster values in the FAT and directory entries are then relative to this cluster. "Allocatable" means a cluster which is not reserved for a special purpose (e.g. FAT or backup) and can be used to store files and make directory entries.</td>
+                            </tr>
+                            <tr>
+                                <td>0x38</td>
+                                <td>Allocation End</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x3C</td>
+                                <td>Root Directory Cluster</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x40</td>
+                                <td>Backup Block 1</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x44</td>
+                                <td>Backup Block 2</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x48</td>
+                                <td>Unknown</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x4C</td>
+                                <td>Unknown</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x50</td>
+                                <td>Indirect FAT Cluster List</td>
+                                <td>int[32]</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0xD0</td>
+                                <td>Bad Block List</td>
+                                <td>int[32]</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x150</td>
+                                <td>Card Type</td>
+                                <td>char</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x151</td>
+                                <td>Card Flags</td>
+                                <td>char</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x152</td>
+                                <td>Unknown</td>
+                                <td>short</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x154</td>
+                                <td>ClUster Size</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x158</td>
+                                <td>FAT Entries Per Cluster</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x15C</td>
+                                <td>Clusters Per Block</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x160</td>
+                                <td>Card Form</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x164</td>
+                                <td>Root Directory Cluster 2</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x168</td>
+                                <td>Unknown</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x16C</td>
+                                <td>Unknown</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>0x170</td>
+                                <td>Max Allocatable Clusters</td>
+                                <td>int</td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4 id="fat">File Allocation Table (FAT)</h4>
+                    <h4 id="dir">Directory Tree</h4>
+                    <h4 id="format">Formatting</h4>
+                    <h3 id="cmds">Memcard Commands</h3>
+                    <p>Memcards accept a number of commands, encoded as streams of bytes sent over the SIO2 bus.</p>
+                    <ul>
+                        <li>
+                            <a href="#probe">0x11 - Probe</a>
+                        </li>
+                        <li>
+                            <a href="#unkwritedel">0x12 - Unknown (Write/Delete End)</a>
+                        </li>
+                        <li>
+                            <a href="#setpageerase">0x21 - Set Page (Erase)</a>
+                        </li>
+                        <li>
+                            <a href="#setpagewrite">0x22 - Set Page (Write)</a>
+                        </li>
+                        <li>
+                            <a href="#setpageread">0x23 -  Set Page (Read)</a>
+                        </li>
+                        <li>
+                            <a href="#getspecs">0x26 - Get Specs</a>
+                        </li>
+                        <li>
+                            <a href="#setterminator">0x27 - Set Terminator</a>
+                        </li>
+                        <li>
+                            <a href="#getterminator">0x28 - Get Terminator</a>
+                        </li>
+                        <li>
+                            <a href="#writedata">0x42 - Write Data</a>
+                        </li>
+                        <li>
+                            <a href="#readdata">0x43 - Read Data</a>
+                        </li>
+                        <li>
+                            <a href="#ps1read">0x52 - PS1 Read</a>
+                        </li>
+                        <li>
+                            <a href="#ps1state">0x53 - PS1 State</a>
+                        </li>
+                        <li>
+                            <a href="#ps1write">0x57 - PS1 Write</a>
+                        </li>
+                        <li>
+                            <a href="#ps1pocketstationprobe">0x58 - PS1 Pocketstation Probe</a>
+                        </li>
+                        <li>
+                            <a href="#readwriteend">0x81 - Read/Write End</a>
+                        </li>
+                        <li>
+                            <a href="#eraseblock">0x82 - Erase Block</a>
+                        </li>
+                        <li>
+                            <a href="#unkboot">0xBF - Unknown Boot</a>
+                        </li>
+                        <li>
+                            <a href="#authenticationxor">0xF0 - Authentication (Multiple XOR)</a>
+                        </li>
+                        <li>
+                            <a href="#authenticationf3">0xF3 - Authentication (F3)</a>
+                        </li>
+                        <li>
+                            <a href="#authenticationf7">0xF7 - Authentication (F7)</a>
+                        </li>
+                    </ul>
+                    <h4 id="probe">0x11 - Probe</h4>
+                    <p>A basic heartbeat command to test if a memcard is present in a port. Only the last two response bytes matter, they should be 0x2B and the memcard's current terminator byte.</p>
+                    <table>
+                        <thead>
+                            <th>Byte (zero indexed)</th>
+                            <th>0</th>
+                            <th>1</th>
+                            <th>2</th>
+                            <th>3</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Command</td>
+                                <td>0x81</td>
+                                <td>0x11</td>
+                                <td>0x00</td>
+                                <td>0x00</td>
+                            </tr>
+                            <tr>
+                                <td>Response</td>
+                                <td>0x00</td>
+                                <td>0x00</td>
+                                <td>0x2B</td>
+                                <td>Terminator</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4 id="unkwritedel">0x12 - Unknown (Write/Delete End)</h4>
+                    <p>A command which games send to memcards after writes or erases. Its purpose is currently unknown. A theory is that this is some kind of acknowledge signal; sceMcSync is used on the EE to check if a memcard function has completed or stall until it does. Perhaps sceMcSync is waiting for this command to be processed?</p>
+                    <p>This command conventionally has a length of 4 bytes. Only the last two response bytes matter, they should be 0x2B and the memcard's current terminator byte. The 3rd byte seems to switch between 0x00 and 0x3F, but this appears to be arbitrary to the command completing. Additionally a value may appear at command byte 6, beyond the length specified in the SEND3 register when this command is used, but this too appears arbitrary to completion.</p>
+                    <table>
+                        <thead>
+                            <th>Byte (zero indexed)</th>
+                            <th>0</th>
+                            <th>1</th>
+                            <th>2</th>
+                            <th>3</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Command</td>
+                                <td>0x81</td>
+                                <td>0x12</td>
+                                <td>0x00</td>
+                                <td>0x00 or 0x3F</td>
+                            </tr>
+                            <tr>
+                                <td>Response</td>
+                                <td>0x00</td>
+                                <td>0x00</td>
+                                <td>0x2B</td>
+                                <td>Terminator</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4 id="setpageerase">0x21 - Set Page (Erase)</h4>
+                    <h4 id="setpagewrite">0x22 - Set Page (Write)</h4>
+                    <h4 id="setpageread">0x23 - Set Page (Read)</h4>
+                    <h4 id="getspecs">0x26 - Get Specs</h4>
+                    <h4 id="setterminator">0x27 - Set Terminator</h4>
+                    <h4 id="getterminator">0x28 - Get Terminator</h4>
+                    <h4 id="writedata">0x42 - Write Data</h4>
+                    <h4 id="readdata">0x43 - Read Data</h4>
+                    <h4 id="ps1read">0x52 - PS1 Read</h4>
+                    <h4 id="ps1state">0x53 - PS1 State</h4>
+                    <h4 id="ps1write">0x57 - PS1 Write</h4>
+                    <h4 id="ps1pocketstationprobe">0x58 - PS1 Pocketstation Probe</h4>
+                    <h4 id="readwriteend">0x81 - Read/Write End</h4>
+                    <h4 id="eraseblock">0x82 - Erase Block</h4>
+                    <h4 id="unkboot">0xBF - Unknown Boot</h4>
+                    <h4 id="authenticationxor">0xF0 - Authentication (Multiple XOR)</h4>
+                    <h4 id="authenticationf3">0xF3 - Authentication (F3)</h4>
+                    <h4 id="authenticationf7">0xF7 - Authentication (F7)</h4>
+                </div>
+            </div>
+            <hr/>
+            <div class="row">
+                <div class="twelve columns">
+                    <h2 id="pad">PlayStation 2 Controllers</h2>
+                    <ul>
+                        <li>
+                            <a href="#pad-digital-buttons">Digital Button Mapping</a>
+                        </li>
+                        <li>
+                            <a href="#pad-identity-handshake">Pad Identification/Handshake Commands and Responses</a>
+                        </li>
+                        <li>
+                            <a href="#pad-ds2-vibration-motors">DualShock 2 Vibration Motors</a>
+                        </li>
+                    </ul>
+                    <h3 id="pad-digital-buttons">Digital Button Mapping</h3>
+                    <p>All controllers will use two bytes in positions 3 and 4 (zero indexed) of their poll commands to store all of the digital button states. The table below shows which bits correspond to which buttons.</p>
+                    <p>Byte 3:</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Bit 7 (MSB)</th>
+                                <th>Bit 6</th>
+                                <th>Bit 5</th>
+                                <th>Bit 4</th>
+                                <th>Bit 3</th>
+                                <th>Bit 2</th>
+                                <th>Bit 1</th>
+                                <th>Bit 0 (LSB)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Left</td>
+                                <td>Down</td>
+                                <td>Right</td>
+                                <td>Up</td>
+                                <td>Start</td>
+                                <td>R3</td>
+                                <td>L3</td>
+                                <td>Select</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p>Byte 4:</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Bit 7 (MSB)</th>
+                                <th>Bit 6</th>
+                                <th>Bit 5</th>
+                                <th>Bit 4</th>
+                                <th>Bit 3</th>
+                                <th>Bit 2</th>
+                                <th>Bit 1</th>
+                                <th>Bit 0 (LSB)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Square</td>
+                                <td>Cross</td>
+                                <td>Circle</td>
+                                <td>Triangle</td>
+                                <td>R1</td>
+                                <td>L1</td>
+                                <td>R2</td>
+                                <td>L2</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h3 id="pad-identity-handshake">Pad Identification/Handshake Commands and Responses</h3>
+                    <p>Most pads, with the exception of the PS1 digital pad, can be issued configuration commands by the PS2 to change their operating mode and identify their capabilities to the PS2.</p>
+                    <p>While there are some specific commands which are situational and will have specific details explained, many of these commands are static, predictable responses simply aimed to tell the PS2 what type of pad it is or how many of some thing the pad has.</p>
+                    <h4>PS1 Digital Pad</h4>
+                    <p>The most basic pad to ever grace the Playstation ecosystem. 14 face buttons, all digital on/off values with no analog sticks or pressure capability.</p>
+                    <p>This controller does not support any configuration commands, including the command to enter/exit config mode itself.</p>
+                    <ul>
+                        <li>
+                            <a href="#pad-digital-poll">Poll</a>
+                        </li>
+                        <li>
+                            <a href="#pad-digital-config">Config</a>
+                        </li>
+                    </ul>
+                    <h5 id="pad-digital-poll">Poll</h5>
+                    <p>Get all inputs on the controller. Plain and simple. Bytes 3 and 4 are the digital mappings.</p>
+                    <table>
+                        <tr>
+                            <th>Byte (Zero Indexed)</td>
+                            <td>0</td>
+                            <td>1</td>
+                            <td>2</td>
+                            <td>3</td>
+                            <td>4</td>
+                        </tr>
+                        <tr>
+                            <th>Command</th>
+                            <td>0x01</td>
+                            <td>0x42</td>
+                            <td>0x00</td>
+                            <td>0x00</td>
+                            <td>0x00</td>
+                        </tr>
+                        <tr>
+                            <th>Data</th>
+                            <td>0xFF</td>
+                            <td>0x41</td>
+                            <td>0x5A</td>
+                            <td>0xFF</td>
+                            <td>0xFF</td>
+                        </tr>
+                    </table>
+                    <h5 id="pad-digital-config">Config</h5>
+                    <p>
+                        Ask the controller to enter or exit config mode. Digital pads may receive this command from the PS2 as it first doesn't know if the pad is truly digital only. The pad will respond that it has no idea what the command is,
+                        and that tells the PS2 it is a digital pad.
+                    </p>
+                    <p>Interesting note - the RECV1 value on this command with only one digital pad inserted in particular is <code>0x0001D100</code>, as opposed to <code>0x00001100</code> as expected for a normal poll.</p>
+                    <table>
+                        <tr>
+                            <th>Byte (Zero Indexed)</td>
+                            <td>0</td>
+                            <td>1</td>
+                            <td>2</td>
+                            <td>3</td>
+                            <td>4</td>
+                        </tr>
+                        <tr>
+                            <th>Command</th>
+                            <td>0x01</td>
+                            <td>0x43</td>
+                            <td>0x00</td>
+                            <td>0x01</td>
+                            <td>0x00</td>
+                        </tr>
+                        <tr>
+                            <th>Data</th>
+                            <td>0xFF</td>
+                            <td>0x41</td>
+                            <td>0xFF</td>
+                            <td>0xFF</td>
+                            <td>0xFF</td>
+                        </tr>
+                    </table>
+                    <h3 id="pad-ds2-vibration-motors">DualShock 2 Vibration Motors</h3>
+                    <ul>
+                        <li>
+                            <a href="#pad-ds2-motor-setup">Motor Setup</a>
+                        </li>
+                        <li>
+                            <a href="#pad-ds2-motor-power">Motor Power</a>
+                        </li>
+                    </ul>
+                    <h4 id="pad-ds2-motor-setup">Motor Setup</h4>
+                    <p>The DualShock 2 has two vibration motors, small and large. They are controlled by the 3rd and 4th (zero indexed) command bytes of a pad poll. Take the following pad poll command for a digital pad (analog and pressure values simply don't matter here):</p>
+                    <table>
+                        <tr>
+                            <th>Byte (Zero Indexed)</td>
+                            <td>0</td>
+                            <td>1</td>
+                            <td>2</td>
+                            <td>3</td>
+                            <td>4</td>
+                        </tr>
+                        <tr>
+                            <th>Command</th>
+                            <td>0x01</td>
+                            <td>0x42</td>
+                            <td>0x00</td>
+                            <td>0x01</td>
+                            <td>0xff</td>
+                        </tr>
+                        <tr>
+                            <th>Data</th>
+                            <td>0xFF</td>
+                            <td>0x41</td>
+                            <td>0x5A</td>
+                            <td>0xFF</td>
+                            <td>0xFF</td>
+                        </tr>
+                    </table>
+                    <p>Under normal circumstances, the small motor is controlled by the 3rd byte, and large motor by the 4th. This particular example would turn on the small motor with power level 0x01, and turn on the large motor with power level 0xff. However, the pad protocol supports remapping these.</p>
+                    <p>The vibration config command's 3rd and 4th (zero indexed) bytes correspond to small and large motor. Whichever values are supplied in these positions of the console's command then determines which byte of a pad poll that motor will get its power level from.</p>
+                    <p>The normal thing to do would be for the 3rd byte to be 0x00, and the 4th byte to be 0x01. In other words, the small motor will look at the first vibration value (the 3rd byte of the poll), and the large motor will look at the second vibration value (the 4th byte of the poll).</p>
+                    <p>It is uncommon, but some games such as FFX do rearrange the motors. Take the example of a vibration config command where the 3rd byte is 0x01, and the 4th byte is 0x00; this would set small motor to the second vibration value (the 4th byte of the poll), and large motor to the first vibration value (the 3rd byte of the poll). In such a case, if you then wanted to turn on both motors to full power, your pad poll would now look like:</p>
+                    <table>
+                        <tr>
+                            <th>Byte (Zero Indexed)</td>
+                            <td>0</td>
+                            <td>1</td>
+                            <td>2</td>
+                            <td>3</td>
+                            <td>4</td>
+                        </tr>
+                        <tr>
+                            <th>Command</th>
+                            <td>0x01</td>
+                            <td>0x42</td>
+                            <td>0x00</td>
+                            <td>0xff</td>
+                            <td>0x01</td>
+                        </tr>
+                        <tr>
+                            <th>Data</th>
+                            <td>0xFF</td>
+                            <td>0x41</td>
+                            <td>0x5A</td>
+                            <td>0xFF</td>
+                            <td>0xFF</td>
+                        </tr>
+                    </table>
+                    <h4 id="pad-ds2-motor-power">Motor Power</h4>
+                    <p>Power delivery to the motors is handled directly in software. Both the small motor and large motor are set using an unsigned char value.</p>
+                    <p>The small motor is binary and only considers the LSB of the unsigned char. In other words, if it is an odd number, the small motor will turn on. If an even number, it will turn off.</p>
+                    <p>The large motor considers the full range of the unsigned char and will power on accordingly. However, due to either a hardware cutoff, the motor's physical weight being to high, or some combination of both, the motor will only start actually spinning at a certain power level.</p>
+                    <p>On my DS2, the first perceivable large motor vibration was felt at 0x40, but it was barely able to work, and simply shaking the controller a little was enough for the weight of the motor to overcome the power delivered to it.</p>
+                </div>
+            </div>
+            <hr/>
+            <div class="row">
+                <div class="twelve columns">
+                    <h2 id="multitaps">PlayStation 2 Multitaps</h2>
+                    <p>The multitap is a peripheral which plugs in to both a memory card and pad port at the same time. It expands each of these ports into four slots. Two multitaps can be plugged in for a total of eight slots.</p>
+                    <p>Internally, each of the two ports gets four slots assigned to it and these map predictably to the letters shown on the multitap. Slot A = 0, Slot B = 1, Slot C = 2, Slot D = 3.</p>
+                    <p>
+                        Pad and memcard functions almost always take port and slot parameters. The port refers to the two physical port on the front of the PS2, and slot refers to the four multitap slots.
+                        If the software has no intent to use the multitaps, the slot is always 0.
+                    </p>
+                    <p>Multitaps are effectively switches or routing devices. It is assumed that, after being plugged in, if they do not receive any commands to change the routing target, they default to just forward all commands to slot A.</p>
+                    <ul>
+                        <li>
+                            <a href="#mtap-fmcb">FreeMCBoot Compatibility</a>
+                        </li>
+                    </ul>
+                    <h3 id="mtap-fmcb">FreeMCBoot Compatibility</h3>
+                    <p>
+                        FreeMCBoot memcards can only be successfully used in multitap slot A. Inserting a FreeMCBoot memcard into any other slot will have no effect and the system will boot normally.
+                    </p>
+                </div>
+            </div>
+            <hr/>
+            <div class="row">
+                <div class="twelve columns">
+                    <h2 id="src">Sources</h2>
+                    <ul>
+                        <li>
+                            <a href="#ross">Ross Ridge's "PlayStation 2 Memory Card File System" Document</a>
+                        </li>
+                        <li>
+                            <a href="#ps2tek">PSI's "ps2tek" Document</a>
+                        </li>
+                    </ul>
+                    <h3 id="ross">Ross Ridge's "PlayStation 2 Memory Card File System" Document</h3>
+                    <p>Provides information on the entire PS2 memcard filesystem.</p>
+                    <h4>Links</h4>
+                    <ul>
+                        <li>
+                            <a href="http://www.csclub.uwaterloo.ca:11068/mymc/ps2mcfs.html">
+                                Original document
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://web.archive.org/web/20220501172129/http://www.csclub.uwaterloo.ca:11068/mymc/ps2mcfs.html">
+                                A snapshot on the Wayback Machine (2022-05-01)
+                            </a>
+                        </li>
+                    </ul>
+                    <h3 id="ps2tek">PSI's "ps2tek" Document</h3>
+                    <p>Absolutely critical in making heads or tails of the PS2's IOP modules for SIO2, memcards, and pads.</p>
+                    <h4>Links</h4>
+                    <ul>
+                        <li>
+                            <a href="https://psi-rockin.github.io/ps2tek/">Original document</a>
+                        </li>
+                        <li>
+                            <a href="https://web.archive.org/web/20220903190800/https://psi-rockin.github.io/ps2tek/">A snapshot on the Wayback Machine (2022-09-03)</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
