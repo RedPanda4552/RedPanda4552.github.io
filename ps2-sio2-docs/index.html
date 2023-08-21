@@ -468,6 +468,9 @@
                         <li>
                             <a href="#cmds">Memcard Commands</a>
                         </li>
+                        <li>
+                            <a href="#defective-games">Games With Dangerous/Defective Memcard Code</a>
+                        </li>
                     </ul>
                     <h3 id="mcfs">Memcard Filesystem</h3>
                     <ul>
@@ -903,6 +906,31 @@
                     <h4 id="authenticationxor">0xF0 - Authentication (Multiple XOR)</h4>
                     <h4 id="authenticationf3">0xF3 - Authentication (F3)</h4>
                     <h4 id="authenticationf7">0xF7 - Authentication (F7)</h4>
+                    <h3 id="defective-games">Games With Defective/Dangerous Memcard Code</h3>
+                    <p>A number of games have been found over the years to contain behavior which is dangerous to memcards.</p>
+                    <ul>
+                        <li>
+                            <a href="#jak-x">Jak X Combat Racing</a>
+                        </li>
+                        <li>
+                            <a href="#soul-calibur-3">Soul Calibur III</a>
+                        </li>
+                        <li>
+                            <a href="#playstation-underground">PlayStation Underground Holiday 2004 Demo Disc</a>
+                        </li>
+                    </ul>
+                    <h4 id="jak-x">Jak X Combat Racing</h4>
+                    <p>Jak X Combat Racing has a bug where the game will soft lock while saving. After waiting a decent amount of time, it does seem like it becomes safe to reset the PS2, and that save data is actually being fully committed to the memcard. However, according to user reports this does not always seem to be the case, so it is best to try and work around this bug whenever possible. This bug affects all regions (NTSC/PAL alike) and occurs on all PS2 models. There is a higher likelihood to encounter this issue on a slim PS2, however it is not exclusive to slims.</p>
+                    <p>The bug is best worked around by ejecting the memory card prior to any save operations. Let the game detect that the card is missing, then reinsert it and let the game save. Be sure not to ever eject a memory card during a save or load operation.</p>
+                    <h4 id="soul-calibur-3">Soul Calibur 3</h4>
+                    <p>Soul Calibur 3 has an issue where any data written to a memcard prior to its own save file being placed on the card must not be modified. Any kind of change to the size of a file written to the card before Soul Calibur 3's save file was added, will result in Soul Calibur 3 no longer recognizing its own save file and instead saying it is corrupt.</p>
+                    <p>This issue is best worked around by plain and simply giving this game its own memory card.</p>
+                    <p>It is highly likely the developers chose to do some kind of nonstandard practice revolving around the FAT on the memcard. However, it is not exactly clear what this would entail; the most likely explanation is that they are doing something bizarre to the FAT. That raises additional questions however, as the FAT is only accessible from the IOP module, suggesting modifications may have been made to MCMAN. The standard memory card functions are invoked from the EE and behave extremely similarly to stdio, using file descriptors and paths rather than page manipulation.</p>
+                    <h4 id="playstation-underground">PlayStation Underground Holiday 2004 Demo Disc</h4>
+                    <p>The PlayStation Underground Holiday 2004 Demo Disc ended up being a nightmare for many gamers alike and a liability for all who took part in its release. It was directly responsible for many save files being irreversibly destroyed.</p>
+                    <p>While simply booting the demo disc is fine, as are most games on the disc, the disc contains a demo for Viewtiful Joe 2. This demo has code in it which issues multiple memory card format commands, as well as multiple memory card write commands. The formats will wipe out the FAT and return the card to a "fresh" state. The write commands will then overwrite seemingly random areas of the card with garbage. It is worth noting most of the writes end up being out of bounds, and/or misaligned. All data on the memcard is lost at this point.</p>
+                    <p>Running the format function on a memory card is a very deliberate action for a game to take. As is writing data to a memory card. To suggest that this is truly a bug, and not malicious action taken by a rogue developer seems to be a gross mischaracterization of the amount of deliberance and effort taken to ensure this release made it on to this demo disc. Even during development, having the boot sequence of your game run the memory card format function multiple times is not something you would do. Having the boot sequence of your game run memory card writes to random, misaligned addresses, is not something you would do. Having your game run memory card writes targeted to addresses in the first place, is not something you can do from the SDK. You need to modify an IOP module to make that happen.</p>
+                    <p>Either they had a really, really, REALLY bad time with some unfortunate undefined behavior that no one noticed before this demo made it out the door. Or, someone made sure that this demo had a little bit of a different startup sequence in it, and managed to make sure no one found out about it until the first poor sap ran this demo.</p>
                 </div>
             </div>
             <hr/>
