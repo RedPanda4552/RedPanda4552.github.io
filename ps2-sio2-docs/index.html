@@ -1155,7 +1155,7 @@
             <hr/>
             <div class="row">
                 <div class="twelve columns">
-                    <h2 id="multitaps">PlayStation 2 Multitaps</h2>
+                    <h2 id="multitap">PlayStation 2 Multitaps</h2>
                     <p>The multitap is a peripheral which plugs in to both a memory card and pad port at the same time. It expands each of these ports into four slots. Two multitaps can be plugged in for a total of eight slots.</p>
                     <p>Internally, each of the two ports gets four slots assigned to it and these map predictably to the letters shown on the multitap. Slot A = 0, Slot B = 1, Slot C = 2, Slot D = 3.</p>
                     <p>
@@ -1167,10 +1167,59 @@
                         <li>
                             <a href="#mtap-fmcb">FreeMCBoot Compatibility</a>
                         </li>
+                        <li>
+                            <a href="#mtap-bizarre-games">Games With Bizarre Multitap Behavior</a>
+                        </li>
                     </ul>
                     <h3 id="mtap-fmcb">FreeMCBoot Compatibility</h3>
                     <p>
                         FreeMCBoot memcards can only be successfully used in multitap slot A. Inserting a FreeMCBoot memcard into any other slot will have no effect and the system will boot normally.
+                    </p>
+                    <h3 id="mtap-bizarre-games">Games With Bizarre Multitap Behavior</h3>
+                    <p>
+                        There are some general conventions that, while not enforced or really even recommended, were just generally "the thing to do". With multitaps, one of those is making a sort of
+                        abstraction layer where the game can reasonably work out which controller should map to which player in the game. Even here there's probably plenty of different ways developers
+                        could and would implement this in their games. But some games took a bit of an unusual approach.
+                    </p>
+                    <ul>
+                        <li>
+                            <a href="#mtap-digimon">Digimon Rumble Arena 2</a>
+                        </li>
+                        <li>
+                            <a href="#mtap-downhill">Downhill Domination</a>
+                        </li>
+                    </ul>
+                    <h4 id="mtap-digimon">Digimon Rumble Arena 2</h4>
+                    <p>
+                        Digimon Rumble Arena 2 chose to simplify its controller handling by requiring you to use your multitap in port 2. The game will always expect to find a pad in port 1 with no multitap.
+                        Perhaps they thought "people will always want a pad in their first port, it's the second one which may or may not be used; so lets only check for multitaps there". Or, they got lazy and
+                        only wanted to run multitap checks against port 2. The latter seems a little more likely - rather than run some kind of abstraction layer where "the Xth pad to connect takes the Xth player slot in-game",
+                        the multitap slots are literally hard coded to the player slots in-game.
+                    </p>
+                    <p>
+                        If you have no multitap, port 1 = player 1, port 2 = player 2.
+                    </p>
+                    <p>
+                        If you have a multitap in port 1, slot A continues to work in the multitap's "default" state, none of the other slots work. Port 2 still works normally.
+                    </p>
+                    <p>
+                        If you have a multitap in port 2, port 1 = player 1, slot 2-A = player 2, slot 2-B = player 3, slot 2-C = player 4, slot 2-D is not useable. That's right. 2-A, 2-B, 2-C get hard coded to the in-game players,
+                        and you are not allowed to scramble that at all.
+                    </p>
+                    <p>
+                        What's worse, the manual tells you to put your multitap into port 1! The one that doesn't work!
+                    </p>
+                    <h4 id="mtap-downhill">Downhill Domination</h4>
+                    <p>
+                        Downhill Domination is incredibly literal minded with its multitap implementation. The game only accepts a multitap in port 1. Attempting to use a multitap in port 2 results in the same "default behavior"
+                        as any other game - slot 2-A is treated the same as literal port 2, the rest of the slots are dead.
+                    </p>
+                    <p>
+                        When a multitap is inserted to port 1, the game no longer considers port 2 valid. All controllers must be connected through the multitap. For the game to detect X controllers, the controllers must all be connected sequentially.
+                        Any empty slot in the multitap results in the game thinking that slot plus any others after it are empty.
+                    </p>
+                    <p>
+                        Even if you are trying to play two player, the multitap gets in the way! Using slot 1-A and port 2 together, the game will not detect the second controller.
                     </p>
                 </div>
             </div>
