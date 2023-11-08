@@ -241,6 +241,15 @@
                         Classically believed to tell us strictly if any one device is plugged in. But after provoking a PS2 with some homebrew, blasting it with various pad commands, plugging and unplugging controllers all the while,
                         some more nuanced behavior can be observed. While this list is not exhaustive of every possible open/disconnect pairing, I do believe it encapsulates all of the possible <i>outcomes</i>.
                     </p>
+                    <ul>
+                        <li>
+                            <a href="#recv1-tests">RECV1 Test Results (Pads Only)</a>
+                        </li>
+                        <li>
+                            <a href="#recv1-mtap">Multitap Differences</a>
+                        </li>
+                    </ul>
+                    <h5 id="recv1-tests">RECV1 Test Results (Pads Only)</h5>
                     <p>
                         These scenarios may need some additional runs - these were carried out with the PS2SDK pad module and its behavior seems flaky at best. I encountered multiple scenarios where polls were returning inputs from the wrong pad,
                         or the printf statements in my code simply would not run, and there would be no indication of where or why the code just stopped running.
@@ -441,6 +450,11 @@
                             </tr>
                         </tbody>
                     </table>
+                    <h5 id="recv1-mtap">Multitap Differences</h5>
+                    <p>
+                        RECV1 behaves a bit differently with multitaps. Normally for pads, bits 16 and 17 being set would indicate if port 0 and port 1 were empty, respectively. Instead, if either multitap is missing (or both),
+                        only bit 16 is set, regardless of port. MTAPMAN only evaluates bit 16, not 17, when trying to determine if the device is not present. 
+                    </p>
                     <h4 id="recv2">RECV2</h4>
                     <h4 id="recv3">RECV3</h4>
                     <h3 id="electric">Electrical Signals</h3>
