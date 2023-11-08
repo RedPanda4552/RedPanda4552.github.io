@@ -100,9 +100,6 @@
                         <li>
                             <a href="#sio2regs">SIO2 Registers</a>
                         </li>
-                        <li>
-                            <a href="#electric">Electrical Signals</a>
-                        </li>
                     </ul>
                     <h3 id="sio2regmap">SIO2 Register Memory Map</h3>
                     <table class="shrink-last">
@@ -132,7 +129,7 @@
                                 <td>FIFO_IN</td>
                                 <td>0x1F808260</td>
                                 <td>char</td>
-                                <td>Hardware address wired to the data rail of the front ports; SIO2MAN writes command data to this register.</td>
+                                <td>Hardware address wired to the command rail of the front ports; SIO2MAN writes commands to this register.</td>
                             </tr>
                             <tr>
                                 <td>FIFO_OUT</td>
@@ -234,6 +231,17 @@
                     </table>
                     <h4 id="send1send2">SEND1/SEND2</h4>
                     <h4 id="fifoin">FIFO_IN</h4>
+                    <p>
+                        Register where IOP modules can write commands to be sent to peripherals. Unlike SIO0 which specifically would transfer and receive one byte at a time, SIO2 transfers and receives in bulk. All command bytes are written sequentially,
+                        then all data bytes are read sequentially. 
+                    </p>
+                    <p>
+                        It is unclear what the underlying electrical mechanism is for this, but unlike SIO0 it is not driven by IRQs, nor do the CTRL and ISTAT registers play a role. This seems to work autonomously at the electrical level by unknown means.
+                        It is highly likely that this would mirror the behavior of how the rails worked on the PS1, as the PS2 IOP modules know how to talk to PS1 memory cards.
+                    </p>
+                    <p>
+                        This register only 32 bits wide and only ever written to with a single byte.
+                    </p>
                     <h4 id="fifoout">FIFO_OUT</h4>
                     <h4 id="ctrl">CTRL</h4>
                     <h4 id="recv1">RECV1</h4>
