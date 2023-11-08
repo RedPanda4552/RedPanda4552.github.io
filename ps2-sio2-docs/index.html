@@ -132,13 +132,13 @@
                                 <td>FIFO_IN</td>
                                 <td>0x1F808260</td>
                                 <td>char</td>
-                                <td>Used by IOP to send commands to SIO2MAN.</td>
+                                <td>Hardware address wired to the data rail of the front ports; SIO2MAN writes command data to this register.</td>
                             </tr>
                             <tr>
                                 <td>FIFO_OUT</td>
                                 <td>0x1F808264</td>
                                 <td>char</td>
-                                <td>Used by IOP to receive response data from SIO2MAN.</td>
+                                <td>Hardware address wired to the data rail of the front ports; peripherals send their response data and SIO2MAN reads it from here.</td>
                             </tr>
                             <tr>
                                 <td>CTRL</td>
@@ -150,19 +150,19 @@
                                 <td>RECV1</td>
                                 <td>0x1F80826C</td>
                                 <td>int</td>
-                                <td>Written after transfers, indicating if there was a peripheral connected.</td>
+                                <td>Written by unknown means, this register is updated to reflect the status of peripherals addressed by a packet. This register is never written to from IOP space. IOP modules read this register, typically after FIFO_IN writes are finished, and before FIFO_OUT reads begin.</td>
                             </tr>
                             <tr>
                                 <td>RECV2</td>
                                 <td>0x1F808270</td>
                                 <td>int</td>
-                                <td>Written after transfers, purpose unknown.</td>
+                                <td>Written by unknown means, purpose unknown. IOP modules read this register, typically after FIFO_IN writes are finished, and before FIFO_OUT reads begin.</td>
                             </tr>
                             <tr>
                                 <td>RECV3</td>
                                 <td>0x1F808274</td>
                                 <td>int</td>
-                                <td>Written after transfers, the upper short seems to be the size of the data received.</td>
+                                <td>Written by unknown means, the upper short seems to be the size of the data received. IOP modules read this register, typically after FIFO_IN writes are finished, and before FIFO_OUT reads begin.</td>
                             </tr>
                         </tbody>
                     </table>
