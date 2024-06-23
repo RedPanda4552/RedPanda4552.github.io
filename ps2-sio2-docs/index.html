@@ -479,6 +479,9 @@
                             <a href="#cmds">Memcard Commands</a>
                         </li>
                         <li>
+                            <a href="#copy-protected">Games which copy protect their save files</a>
+                        </li>
+                        <li>
                             <a href="#defective-games">Games With Dangerous/Defective Memcard Code</a>
                         </li>
                     </ul>
@@ -916,6 +919,52 @@
                     <h4 id="authenticationxor">0xF0 - Authentication (Multiple XOR)</h4>
                     <h4 id="authenticationf3">0xF3 - Authentication (F3)</h4>
                     <h4 id="authenticationf7">0xF7 - Authentication (F7)</h4>
+                    <h3 id="copy-protected">Games which copy protect their save files</h3>
+                    <p>
+                        One of the new features introduced to PS2 memory cards is copy protection. Quite simply, a save file can be flagged as protected, and if so, the BIOS will refuse to copy it to another memory card.
+                        The implementation of the copy protection is done entirely in the PS2 BIOS; other software can simply choose not to implement it, and completely bypass it. LLE emulators are an exception to this,
+                        as they will continue to execute the native BIOS code which includes copy protection.
+                    </p>
+                    <table>
+                        <thead>
+                            <th>Title</th>
+                            <th>Serials/Regions Known</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>PS2 Network Configuration (BWNETCONF)</td>
+                                <td>NTSC-J</td>
+                            </tr>
+                            <tr>
+                                <td>Monster Hunter</td>
+                                <td>SLUS-20896, SLES-52707, SLPM-65495</td>
+                            </tr>
+                            <tr>
+                                <td>Monster Hunter 2 dos</td>
+                                <td>SLPM-66280</td>
+                            </tr>
+                            <tr>
+                                <td>Sims 2 Castaway</td>
+                                <td>SLES-54903</td>
+                            </tr>
+                            <tr>
+                                <td>Sims 2 Pets</td>
+                                <td>SLES-54347</td>
+                            </tr>
+                            <tr>
+                                <td>Star Ocean: Till the End of Time (Battle Trophies)</td>
+                                <td>SLUS-20488, SLUS-20891</td>
+                            </tr>
+                            <tr>
+                                <td>Timesplitters (Game Settings)</td>
+                                <td>SLES-50078</td>
+                            </tr>
+                            <tr>
+                                <td>Timesplitters 2 (Game Settings)</td>
+                                <td>SLES-50877</td>
+                            </tr>
+                        </tbody>
+                    </table>
                     <h3 id="defective-games">Games With Defective/Dangerous Memcard Code</h3>
                     <p>A number of games have been found over the years to contain behavior which is dangerous to memcards.</p>
                     <ul>
