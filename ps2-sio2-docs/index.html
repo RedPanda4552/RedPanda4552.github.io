@@ -21,8 +21,30 @@
             <div class="row">
                 <div class="twelve columns">
                     <h1>PlayStation 2: Serial Input Output 2, Memory Cards, Controllers, Multitaps, and More!</h1>
-                    <p>This document outlines the Serial Input Output 2 bus and the memory cards, controllers, multitaps, and anything else developers tried to cram into those ports.</p>
-                    <p>This document is a work in progress. Updates will continue to roll in as I have time to work on it.</p>
+                    <p>
+                        This document outlines the Serial Input Output 2 bus and the memory cards, controllers, multitaps, and anything else developers tried to cram into those ports.
+                    </p>
+                    <p>
+                        This document is a work in progress. Updates will continue to roll in as I have time to work on it.
+                    </p>
+                    <h5>Sources and Methods for Information Gathering</h5>
+                    <ul>
+                        <li>Read from another documented source (sources listed at the end of this document).</li>
+                        <li>Derived from reverse engineering IOP modules and EE libraries.</li>
+                        <li>Observed from PS2 homebrew tests compiled with PS2SDK, and ran on a SCPH-39001 model PS2.</li>
+                        <li>Observed from the effects of emulation code changes on retail PS2 games.</li>
+                    </ul>
+                    <h5>A Note About Updated Libraries and Modules</h5>
+                    <p>
+                        Another important detail to note is later in the PS2's lifecycle, Sony introduced libmc2 and libpad2 which, in my opinion, complicate things substantially more.
+                        The IOP modules used in tandem with these EE libraries are much more tightly integrated with DBCMAN. This decision makes sense for device management purposes;
+                        this way all the various I/O devices, controlled by SIO2 or not, can be handled as devices out of a single module.
+                    </p>
+                    <p>
+                        However, for the sake of reverse engineering, I find it substantially harder to work with.
+                        Most information revolves around the original libmc, libpad, and the IOP modules they talk to.
+                        Information about the updated EE libraries and IOP modules will be sparse, if not missing from this document, for the foreseeable future.
+                    </p>
                 </div>
             </div>
             <div class="row">
