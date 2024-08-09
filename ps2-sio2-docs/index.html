@@ -122,6 +122,9 @@
                         <li>
                             <a href="#sio2regs">SIO2 Registers</a>
                         </li>
+                        <li>
+                            <a href="#sio2-register-emulation">SIO2 Register Emulation Considerations</a>
+                        </li>
                     </ul>
                     <h3 id="sio2regmap">SIO2 Register Memory Map</h3>
                     <table class="shrink-last">
@@ -129,59 +132,47 @@
                             <th>Name</th>
                             <th>Address</th>
                             <th>Data Type</th>
-                            <th>Description</th>
                         </thead>
                         <tbody>
                             <tr>
                                 <td>SEND3</td>
                                 <td>0x1F808200 - 0x1F80823F</td>
                                 <td>int[16]</td>
-                                <td>Used internally by SIO2MAN to track how many commands it is sending, to which physical ports, and how long they are.</td>
                             </tr>
                             <tr>
                                 <td>SEND1/SEND2</td>
                                 <td>0x1F808240 - 0x1F80825F</td>
                                 <td>int[8]</td>
-                                <td>
-                                    Unknown. Collectively this register is an int[8] type but how specifically it works is a bit of a tangled mess. If bit 2 is cleared, SIO2MAN treats it as SEND1,
-                                    if bit 2 is set, SIO2MAN treats it as SEND2.
-                                </td>
                             </tr>
                             <tr>
                                 <td>FIFO_IN</td>
                                 <td>0x1F808260</td>
                                 <td>char</td>
-                                <td>Hardware address wired to the command rail of the front ports; SIO2MAN writes commands to this register.</td>
                             </tr>
                             <tr>
                                 <td>FIFO_OUT</td>
                                 <td>0x1F808264</td>
                                 <td>char</td>
-                                <td>Hardware address wired to the data rail of the front ports; peripherals send their response data and SIO2MAN reads it from here.</td>
                             </tr>
                             <tr>
                                 <td>CTRL</td>
                                 <td>0x1F808268</td>
                                 <td>int</td>
-                                <td>Control register for SIO2. Known bits include 0 for starting command transfers, and 2 and 3 which reset SIO2. Most variants of SIO2MAN seem to set this register to 0x000003BC on resets.</td>
                             </tr>
                             <tr>
                                 <td>RECV1</td>
                                 <td>0x1F80826C</td>
                                 <td>int</td>
-                                <td>Written by unknown means, this register is updated to reflect the status of peripherals addressed by a packet. This register is never written to from IOP space. IOP modules read this register, typically after FIFO_IN writes are finished, and before FIFO_OUT reads begin.</td>
                             </tr>
                             <tr>
                                 <td>RECV2</td>
                                 <td>0x1F808270</td>
                                 <td>int</td>
-                                <td>Written by unknown means, purpose unknown. IOP modules read this register, typically after FIFO_IN writes are finished, and before FIFO_OUT reads begin.</td>
                             </tr>
                             <tr>
                                 <td>RECV3</td>
                                 <td>0x1F808274</td>
                                 <td>int</td>
-                                <td>Written by unknown means, the upper short seems to be the size of the data received. IOP modules read this register, typically after FIFO_IN writes are finished, and before FIFO_OUT reads begin.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -213,7 +204,12 @@
                         </li>
                     </ul>
                     <h4 id="send3">SEND3</h4>
-                    <p>This register is an array of 16 ints. For each int:</p>
+                    <p>
+                        Used internally by SIO2MAN to track how many commands it is sending, to which physical ports, and how long they are.
+                    </p>
+                    <p>
+                        This register is an array of 16 ints. For each int:
+                    </p>
                     <table class="shrink-last">
                         <thead>
                             <th>Bit</th>
@@ -252,21 +248,35 @@
                         </tbody>
                     </table>
                     <h4 id="send1send2">SEND1/SEND2</h4>
+                    <p>
+                        A mystery pair of registers whose exact purpose is unknown. Though these registers both exist interweaved in the same memory address, IOP modules reference these both as separate registers.
+                        Bit 2 (zero indexed) can be used to tell if it is SEND1 (unset) or SEND2 (set).
+                    </p>
                     <h4 id="fifoin">FIFO_IN</h4>
                     <p>
-                        Register where IOP modules can write commands to be sent to peripherals. Unlike SIO0 which specifically would transfer and receive one byte at a time, SIO2 transfers and receives in bulk. All command bytes are written sequentially,
-                        then all data bytes are read sequentially. 
+                        Register where IOP modules can write commands to be sent to peripherals. Though named as FIFO, this is not a queue but a single register to place one byte of data at a time.
+                        This register is 32 bits wide, but only the LSB is ever written.
                     </p>
                     <p>
-                        It is unclear what the underlying electrical mechanism is for this, but unlike SIO0 it is not driven by IRQs, nor do the CTRL and ISTAT registers play a role. This seems to work autonomously at the electrical level by unknown means.
-                        It is highly likely that this would mirror the behavior of how the rails worked on the PS1, as the PS2 IOP modules know how to talk to PS1 memory cards.
-                    </p>
-                    <p>
-                        This register only 32 bits wide and only ever written to with a single byte.
+                        It is unclear what the underlying electrical mechanism is for this, but possible that the ISTAT or CTRL register play some role in controlling when the data written here is transmitted to a peripheral.
                     </p>
                     <h4 id="fifoout">FIFO_OUT</h4>
+                    <p>
+                        Register where IOP modules can read data received from peripherals. Though named as FIFO, this is not a queue but a single register to place one byte of data at a time.
+                        This register is 32 bits wide, but only the LSB is ever read.
+                    </p>
+                    <p>
+                        It is unclear what the underlying electrical mechanism is for this, but it is possible that the ISTAT or CTRL register play some role in controlling when the IOP module is notified of the data put here by a peripheral.
+                    </p>
                     <h4 id="ctrl">CTRL</h4>
+                    <p>
+                        Control register for SIO2. Known bits include 0 for starting command transfers, and 2 and 3 which reset SIO2. Most variants of SIO2MAN seem to set this register to 0x000003BC on resets.
+                    </p>
                     <h4 id="recv1">RECV1</h4>
+                    <p>
+                        Written by unknown means, this register is updated to reflect the status of the peripheral being communicated with. This register is never written to from IOP space.
+                        IOP modules read this register, typically after FIFO_IN writes are finished, and before FIFO_OUT reads begin.
+                    </p>
                     <p>
                         Classically believed to tell us strictly if any one device is plugged in. But after provoking a PS2 with some homebrew, blasting it with various pad commands, plugging and unplugging controllers all the while,
                         some more nuanced behavior can be observed. While this list is not exhaustive of every possible open/disconnect pairing, I do believe it encapsulates all of the possible <i>outcomes</i>.
@@ -280,6 +290,32 @@
                         </li>
                     </ul>
                     <h5 id="recv1-tests">RECV1 Test Results (Pads Only)</h5>
+                    <p>
+                        The following general rules seem to explain well enough the meanings of the values found in RECV1:
+                    </p>
+                    <ul>
+                        <li>
+                            The first two nibbles from the right are always zero, except for undefined behavior/uninitialized memory.
+                        </li>
+                        <li>
+                            The third nibble from the right will indicate how many devices have been opened.
+                        </li>
+                        <li>
+                            The fourth nibble from the right will say if an opened device is missing or not.
+                            <ul>
+                                <li><code>1</code> = no opened device is missing</li>
+                                <li><code>D</code> = at least one device which was previously opened is now missing</li>
+                            </ul>
+                        </li>
+                        <li>
+                            The fifth nibble from the right will provide a bitmask of which opened devices are missing, if any.
+                            <ul>
+                                <li><code>1</code> = port 1 opened but missing</li>
+                                <li><code>2</code> = port 2 opened but missing</li>
+                                <li><code>3</code> = ports 1 and 2 opened but missing</li>
+                            </ul>
+                        </li>
+                    </ul>
                     <p>
                         These scenarios may need some additional runs - these were carried out with the PS2SDK pad module and its behavior seems flaky at best. I encountered multiple scenarios where polls were returning inputs from the wrong pad,
                         or the printf statements in my code simply would not run, and there would be no indication of where or why the code just stopped running.
@@ -486,7 +522,34 @@
                         only bit 16 is set, regardless of port. MTAPMAN only evaluates bit 16, not 17, when trying to determine if the device is not present. 
                     </p>
                     <h4 id="recv2">RECV2</h4>
+                    <p>
+                        Written by unknown means, purpose unknown. IOP modules read this register, typically after FIFO_IN writes are finished, and before FIFO_OUT reads begin.
+                    </p>
                     <h4 id="recv3">RECV3</h4>
+                    <p>
+                        Written by unknown means, the upper short seems to be the size of the data received. IOP modules read this register, typically after FIFO_IN writes are finished, and before FIFO_OUT reads begin.
+                    </p>
+                    <h3 id="sio2-register-emulation">SIO2 Register Emulation Considerations</h3>
+                    <p>Some registers have some special considerations that can be made in the context of emulation.</p>
+                    <ul>
+                        <li>
+                            <a href="#sio2-fifo-shortcuts">FIFO_IN and FIFO_OUT Shortcuts</a>
+                        </li>
+                    </ul>
+                    <h4 id="sio2-fifo-shortcuts">FIFO_IN and FIFO_OUT Shortcuts</h4>
+                    <p>
+                        For the purposes of emulation, a lot of the timing constraints found on SIO0's equivalent registers do not apply to FIFO_IN and FIFO_OUT in SIO2;
+                        the PS1 depended on tight timing due to SIO0 being tightly woven into the kernel.
+                        However, these registers can be reliably emulated without such considerations because the IOP modules do almost all state management in high level software.
+                    </p>
+                    <p>
+                        The primary mechanism by which commands flow in to SIO2 and data flows out are writes to FIFO_IN, and reads from FIFO_OUT. These memory writes and reads are all issued by IOP modules.
+                        There is no special mechanism which needs emulated in order to support this behavior, besides having a place to store values for these registers.
+                    </p>
+                    <p>
+                        When the IOP writes to FIFO_IN, an implementation can instantly transmit that to the emulated peripheral, take the emulated peripheral's data byte, and store that to FIFO_OUT.
+                        There is no need to wait for other register statuses; the IOP module which issued the write to FIFO_IN will subsequently issue a read on FIFO_OUT.
+                    </p>
                 </div>
             </div>
             <hr/>
