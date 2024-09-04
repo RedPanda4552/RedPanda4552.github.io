@@ -1484,6 +1484,9 @@
                         <li>
                             <a href="#mtap-wwe-pain">WWE SmackDown! Here Comes the Pain</a>
                         </li>
+                        <li>
+                            <a href="#mtap-donald-duck">Donald Duck: Goin' Quackers + Donald Duck: Quack Attack (?)</a>
+                        </li>
                     </ul>
                     <h4 id="mtap-digimon">Digimon Rumble Arena 2</h4>
                     <p>
@@ -1525,6 +1528,22 @@
                     </p>
                     <p>
                         With both ports multitapped, slots must still be occupied sequentially; port 1's multitap filled first, then the rest in the port 2 multitap.
+                    </p>
+                    <h4 id="mtap-donald-duck">Donald Duck: Goin' Quackers + Donald Duck: Quack Attack (?)</h4>
+                    <p>
+                        Donald Duck: Goin' Quackers rejects all multitaps. The port does not matter, the populated slots do not matter. If a multitap is present, then the game will hang on boot.
+                    </p>
+                    <p>
+                        It is certain the game is initializing libmtap; without it, a multitap plugged in to the system is essentially a forwarding agent which blindly sends all incoming traffic to slot A, until it is
+                        told by the PS2 to switch its slot. A game which does not initialize libmtap cannot actually see that a multitap is present.
+                    </p>
+                    <p>
+                        Intentions are unclear though. It would be easy to attribute this to deliberate developer checks, but developers taking deliberate action to hang the game with no warnings or feedback would be a serious QA failure.
+                        Probably the more likely answer is that this is an issue implementing libpad and libmtap, leading into some serious undefined behavior. The game also hangs on boot if any non-DS2 controller is present,
+                        or if port 1 is empty. Both of these details hint towards some kind of implementation issue rather than purposeful action on the developer.
+                    </p>
+                    <p>
+                        Reports suggest the same is also true of Donald Duck: Quack Attack, however this has not been hardware tested to confirm.
                     </p>
                 </div>
             </div>
