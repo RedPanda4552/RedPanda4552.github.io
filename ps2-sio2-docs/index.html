@@ -278,19 +278,6 @@
                         IOP modules read this register, typically after FIFO_IN writes are finished, and before FIFO_OUT reads begin.
                     </p>
                     <p>
-                        Classically believed to tell us strictly if any one device is plugged in. But after provoking a PS2 with some homebrew, blasting it with various pad commands, plugging and unplugging controllers all the while,
-                        some more nuanced behavior can be observed. While this list is not exhaustive of every possible open/disconnect pairing, I do believe it encapsulates all of the possible <i>outcomes</i>.
-                    </p>
-                    <ul>
-                        <li>
-                            <a href="#recv1-tests">RECV1 Test Results (Pads Only)</a>
-                        </li>
-                        <li>
-                            <a href="#recv1-mtap">Multitap Differences</a>
-                        </li>
-                    </ul>
-                    <h5 id="recv1-tests">RECV1 Test Results (Pads Only)</h5>
-                    <p>
                         The following general rules seem to explain well enough the meanings of the values found in RECV1:
                     </p>
                     <ul>
@@ -316,6 +303,18 @@
                             </ul>
                         </li>
                     </ul>
+                    <ul>
+                        <li>
+                            <a href="#recv1-pad-tests">RECV1 Test Results (Pads Only)</a>
+                        </li>
+                        <li>
+                            <a href="#recv1-mc-tests">RECV1 Test Results (Memcards Only)</a>
+                        </li>
+                        <li>
+                            <a href="#recv1-mtap">Multitap Differences</a>
+                        </li>
+                    </ul>
+                    <h5 id="recv1-pad-tests">RECV1 Test Results (Pads Only)</h5>
                     <p>
                         These scenarios may need some additional runs - these were carried out with the PS2SDK pad module and its behavior seems flaky at best. I encountered multiple scenarios where polls were returning inputs from the wrong pad,
                         or the printf statements in my code simply would not run, and there would be no indication of where or why the code just stopped running.
@@ -519,6 +518,97 @@
                                 </td>
                                 <td><code>0x0003D200</code></td>
                                 <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h5 id="recv1-mc-tests">RECV1 Test Results (Memcards Only)</h5>
+                    <p>
+                        Memory card behavior seems to vary slightly, at the very least due to a change in testing methodology. While most of the core principles from the pad tests still apply,
+                        a new behavior focusing around ejection can be observed.
+                    </p>
+                    <p>
+                        In all cases, MCMAN does a bitwise AND against RECV1 and a mask of 0xF000, then checks if the result is 0x1000. If it passes this, then its considered healthy. If not, then it considers it a failure.
+                    </p>
+                    <p>
+                        It isn't clear why without further investigation into the IOP module but it does seem there is a correlation between RECV1 being set to 0x00001700, and a memory card needing to have <code>sceMcGetInfo</code>
+                        ran against it a second time. Proper use of this function is that if it returns a negative value, the card was newly inserted. This is intended to serve as a sort of warning to signal to the game
+                        code on the EE that the card has been sort of "re-initialized", and should be checked one more time. While it is possible and would make sense that the extra, unused bits on the third nibble could be leveraged
+                        to signal "newly inserted", it is not confirmed that RECV1 value having these extra bits set is what triggers the negative return value from <code>sceMcGetInfo</code>.
+                    </p>
+                    <p>
+                        Each test case below is incremental and adds an additional step to the last case.
+                    </p>
+                    <table class="shrink-last">
+                        <thead>
+                            <th>Scenario</th>
+                            <th>RECV1</th>
+                            <th>Comments</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>Card present at boot</li>
+                                        <li>Run <code>sceMcGetInfo</code></li>
+                                    </ul>
+                                </td>
+                                <td><code>0x00001700</code></td>
+                                <td>This matches a success pattern that would be expected from a pad, but interestingly has additional bits set on the third nibble. They seem to be of no consequence, but their purpose is not clear.</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>Card present at boot</li>
+                                        <li>Run <code>sceMcGetInfo</code></li>
+                                        <li>Run <code>sceMcGetInfo</code> again</li>
+                                    </ul>
+                                </td>
+                                <td><code>0x00001100</code></td>
+                                <td>The expected RECV1 value for a present memcard now occurs.</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>Card present at boot</li>
+                                        <li>Run <code>sceMcGetInfo</code></li>
+                                        <li>Run <code>sceMcGetInfo</code> again</li>
+                                        <li>Eject memory card</li>
+                                        <li>Run <code>sceMcGetInfo</code> again</li>
+                                    </ul>
+                                </td>
+                                <td><code>0x0001D100</code></td>
+                                <td>The expected RECV1 value for a missing memcard now occurs.</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>Card present at boot</li>
+                                        <li>Run <code>sceMcGetInfo</code></li>
+                                        <li>Run <code>sceMcGetInfo</code> again</li>
+                                        <li>Eject memory card</li>
+                                        <li>Run <code>sceMcGetInfo</code> again</li>
+                                        <li>Insert memory card</li>
+                                        <li>Run <code>sceMcGetInfo</code> again</li>
+                                    </ul>
+                                </td>
+                                <td><code>0x00001700</code></td>
+                                <td>Returns to the success pattern with extra bits set.</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <ul>
+                                        <li>Card present at boot</li>
+                                        <li>Run <code>sceMcGetInfo</code></li>
+                                        <li>Run <code>sceMcGetInfo</code> again</li>
+                                        <li>Eject memory card</li>
+                                        <li>Run <code>sceMcGetInfo</code> again</li>
+                                        <li>Insert memory card</li>
+                                        <li>Run <code>sceMcGetInfo</code> again</li>
+                                        <li>Run <code>sceMcGetInfo</code> again</li>
+                                    </ul>
+                                </td>
+                                <td><code>0x00001100</code></td>
+                                <td>Returns to the expected RECV1 value for a present memcard.</td>
                             </tr>
                         </tbody>
                     </table>
