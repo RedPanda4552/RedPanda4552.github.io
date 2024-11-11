@@ -20,3 +20,8 @@ table.shrink-last td:last-child
 {
     white-space: normal;
 }
+
+table thead
+{
+    background-color: #DADADA;
+}
