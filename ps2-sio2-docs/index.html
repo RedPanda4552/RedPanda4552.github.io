@@ -1724,4 +1724,42 @@
             </div>
         </div>
     </body>
+    <script>
+        let tableBodies = document.getElementsByTagName("tbody");
+
+        for (let tbody of tableBodies)
+        {
+            let rows = tbody.getElementsByTagName("tr");
+            console.log(JSON.stringify(rows));
+            let rowCount = 0;
+            
+            for (let row of rows)
+            {
+                if (rowCount % 2 == 0)
+                {
+                    row.style.backgroundColor = '#FFF';
+                }
+                else
+                {
+                    row.style.backgroundColor = '#EEE';
+                }
+
+                rowCount += 1;
+            }
+        }
+
+        let cells = document.getElementsByTagName("td");
+        
+        for (let cell of cells)
+        {
+            if (cell.innerText == 'Yes')
+            {
+                cell.style.backgroundColor = '#BFB';
+            }
+            else if (cell.innerText == 'No')
+            {
+                cell.style.backgroundColor = '#FBB';
+            }
+        }
+    </script>
 </html>
