@@ -1248,6 +1248,9 @@
                         <li>
                             <a href="#pad-ds2-vibration-motors">DualShock 2 Vibration Motors</a>
                         </li>
+                        <li>
+                            <a href="#pad-analog-game-behavior">Games With Notable Analog Behavior</a>
+                        </li>
                     </ul>
                     <h3 id="pad-commands">Pad Commands</h3>
                     <ul>
@@ -1547,6 +1550,128 @@
                     <p>The small motor is binary and only considers the LSB of the unsigned char. In other words, if it is an odd number, the small motor will turn on. If an even number, it will turn off.</p>
                     <p>The large motor considers the full range of the unsigned char and will power on accordingly. However, due to either a hardware cutoff, the motor's physical weight being to high, or some combination of both, the motor will only start actually spinning at a certain power level.</p>
                     <p>On my DS2, the first perceivable large motor vibration was felt at 0x40, but it was barely able to work, and simply shaking the controller a little was enough for the weight of the motor to overcome the power delivered to it.</p>
+                    <h3 id="pad-analog-game-behavior">Games With Notable Analog Behavior</h3>
+                    <p>
+                        The choice to use analog sticks at all or at specific times on the PS2 is left entirely to the game to decide. There are many games which may choose to not enable analog sticks at all,
+                        and others which enabled them but may for example ignore them on certain menus.
+                    </p>
+                    <p>
+                        The following table tracks the following:
+                    </p>
+                    <ul>
+                        <li>Label: Whether or not the game case has the label for Analog Control specified.</li>
+                        <li>Used: Whether or not the game actually uses analog inputs</li>
+                        <li>Toggle: Whether or not the game allows use of the analog button on the controller to toggle the sticks on and off</li>
+                        <li>Notes: Any special exceptions, such as a game ignoring analog sticks at certain times</li>
+                    </ul>
+                    <table>
+                        <thead>
+                            <th>Title</th>
+                            <th>Serials/Regions Known</th>
+                            <th>Label</th>
+                            <th>Used</th>
+                            <th>Toggle</th>
+                            <th>Notes</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>PS2 BIOS</td>
+                                <td>All Revisions</td>
+                                <td>N/A</td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Armored Core 2</td>
+                                <td></td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Armored Core 3</td>
+                                <td></td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Bloody Roar 4</td>
+                                <td></td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Dragonball Z: Budokai Tenkaichi 3</td>
+                                <td></td>
+                                <td>Yes</td>
+                                <td>Yes</td>
+                                <td>No</td>
+                                <td>Ignores analogs in menus</td>
+                            </tr>
+                            <tr>
+                                <td>Guilty Gear XX Accent Core Plus</td>
+                                <td></td>
+                                <td>No</td>
+                                <td>Yes</td>
+                                <td>No</td>
+                                <td>In-game option to enable analog, default off</td>
+                            </tr>
+                            <tr>
+                                <td>Mortal Kombat: Deadly Alliance</td>
+                                <td></td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Onimusha: Warlords</td>
+                                <td></td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Street Fighter EX3</td>
+                                <td></td>
+                                <td>Yes</td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td>Game manual states both sticks are not used.</td>
+                            </tr>
+                            <tr>
+                                <td>Tekken 4</td>
+                                <td>SLUS-20328</td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Virtua Fighter 4</td>
+                                <td></td>
+                                <td>Yes</td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Virtua Fighter 4 Evolution</td>
+                                <td></td>
+                                <td>Yes</td>
+                                <td>No</td>
+                                <td>No</td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
             <hr/>
