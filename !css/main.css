@@ -23,5 +23,17 @@ table.shrink-last td:last-child
 
 table thead
 {
-    background-color: #DADADA;
+    background-color: #DDD;
+}
+
+table thead th 
+{
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+}
+
+table tbody td
+{
+    padding-left: 4px !important;
+    padding-right: 4px !important;
 }
