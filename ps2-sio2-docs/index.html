@@ -122,9 +122,6 @@
                         <li>
                             <a href="#sio2regs">SIO2 Registers</a>
                         </li>
-                        <li>
-                            <a href="#sio2-register-emulation">SIO2 Register Emulation Considerations</a>
-                        </li>
                     </ul>
                     <h3 id="sio2regmap">SIO2 Register Memory Map</h3>
                     <table class="shrink-last">
@@ -624,27 +621,6 @@
                     <h4 id="recv3">RECV3</h4>
                     <p>
                         Written by unknown means, the upper short seems to be the size of the data received. IOP modules read this register, typically after FIFO_IN writes are finished, and before FIFO_OUT reads begin.
-                    </p>
-                    <h3 id="sio2-register-emulation">SIO2 Register Emulation Considerations</h3>
-                    <p>Some registers have some special considerations that can be made in the context of emulation.</p>
-                    <ul>
-                        <li>
-                            <a href="#sio2-fifo-shortcuts">FIFO_IN and FIFO_OUT Shortcuts</a>
-                        </li>
-                    </ul>
-                    <h4 id="sio2-fifo-shortcuts">FIFO_IN and FIFO_OUT Shortcuts</h4>
-                    <p>
-                        For the purposes of emulation, a lot of the timing constraints found on SIO0's equivalent registers do not apply to FIFO_IN and FIFO_OUT in SIO2;
-                        the PS1 depended on tight timing due to SIO0 being tightly woven into the kernel.
-                        However, these registers can be reliably emulated without such considerations because the IOP modules do almost all state management in high level software.
-                    </p>
-                    <p>
-                        The primary mechanism by which commands flow in to SIO2 and data flows out are writes to FIFO_IN, and reads from FIFO_OUT. These memory writes and reads are all issued by IOP modules.
-                        There is no special mechanism which needs emulated in order to support this behavior, besides having a place to store values for these registers.
-                    </p>
-                    <p>
-                        When the IOP writes to FIFO_IN, an implementation can instantly transmit that to the emulated peripheral, take the emulated peripheral's data byte, and store that to FIFO_OUT.
-                        There is no need to wait for other register statuses; the IOP module which issued the write to FIFO_IN will subsequently issue a read on FIFO_OUT.
                     </p>
                 </div>
             </div>
