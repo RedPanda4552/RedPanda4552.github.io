@@ -1244,7 +1244,18 @@
                     <h4 id="pad-command-button-query">Button Query</h4>
                     <h4 id="pad-command-poll">Poll</h4>
                     <h3 id="pad-digital-buttons">Digital Button Mapping</h3>
-                    <p>All controllers will use two bytes in positions 3 and 4 (zero indexed) of their poll commands to store all of the digital button states. The table below shows which bits correspond to which buttons.</p>
+                    <ul>
+                        <li>
+                            <a href="#pad-digital-buttons-normal">Digital, Dualshock, Dualshock 2 Button Mapping</a>
+                        </li>
+                        <li>
+                            <a href="#pad-digital-buttons-guitar">Guitar Button Mapping</a>
+                        </li>
+                    </ul>
+                    <h4 id="pad-digital-buttons-normal">Digital, Dualshock, Dualshock 2 Button Mapping</h4>
+                    <p>
+                        Standard digital, Dualshock, and Dualshock 2 controllers will use two bytes in positions 3 and 4 (zero indexed) of their poll commands to store all of the digital button states. Bits default to 1 when a button is unpressed, and are 0 when pressed. The table below shows which bits correspond to which buttons.
+                    </p>
                     <p>Byte 3:</p>
                     <table>
                         <thead>
@@ -1296,6 +1307,66 @@
                                 <td>L1</td>
                                 <td>R2</td>
                                 <td>L2</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4 id="pad-digital-buttons-guitar">Guitar Button Mapping</h4>
+                    <p>
+                        Guitar controllers (and presumably, though untested, drumkits) will mirror the behavior of standard controllers, using two bytes in positions 3 and 4 (zero indexed) of their poll commands to store all of the digital button states.
+                        Just like standard controllers, bits default to 1 when unpressed, and 0 when pressed. However, the MSB of the first byte in position 3 (zero indexed) will always be 0. It is believed this is a way for the game to help identify the controller as a guitar,
+                        since the standard pad query commands merely report the supported modes, vibration count, etc. There is not an explicit "this is a guitar" flag among these query commands. The table below shows which bits correspond to which buttons.
+                    </p>
+                    <p>Byte 3:</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Bit 7 (MSB)</th>
+                                <th>Bit 6</th>
+                                <th>Bit 5</th>
+                                <th>Bit 4</th>
+                                <th>Bit 3</th>
+                                <th>Bit 2</th>
+                                <th>Bit 1</th>
+                                <th>Bit 0 (LSB)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>(always pressed)</td>
+                                <td>Strum Down</td>
+                                <td>Unused</td>
+                                <td>Strum Up</td>
+                                <td>Start</td>
+                                <td>Unused</td>
+                                <td>Unused</td>
+                                <td>Select</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p>Byte 4:</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Bit 7 (MSB)</th>
+                                <th>Bit 6</th>
+                                <th>Bit 5</th>
+                                <th>Bit 4</th>
+                                <th>Bit 3</th>
+                                <th>Bit 2</th>
+                                <th>Bit 1</th>
+                                <th>Bit 0 (LSB)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Orange</td>
+                                <td>Blue</td>
+                                <td>Red</td>
+                                <td>Yellow</td>
+                                <td>Unused</td>
+                                <td>Unused</td>
+                                <td>Green</td>
+                                <td>Tilt Sensor</td>
                             </tr>
                         </tbody>
                     </table>
